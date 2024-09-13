@@ -45,7 +45,7 @@ def solve_laplace_SOR_semicircular_cartesian(N_x, N_y, R, T0, T1, tol=1e-6, max_
     else:
         print('No se alcanzó la convergencia.')
 
-    return u, mask, X, Y
+    return u, mask
 
 # Parámetros del problema
 N_x = 100  # Aumentar el número de puntos en la dirección x
@@ -55,17 +55,21 @@ T0 = 0.0   # Temperatura en el diámetro (y = 0)
 T1 = 50.0  # Temperatura en el borde circular
 
 # Resolver la ecuación de Laplace
-solution, mask, X, Y = solve_laplace_SOR_semicircular_cartesian(N_x, N_y, R, T0, T1, omega=1.25, tol=1e-6)
+solution, mask = solve_laplace_SOR_semicircular_cartesian(N_x, N_y, R, T0, T1, omega=1.25, tol=1e-6)
+
+# Crear la malla cartesianas para la visualización
+x = np.linspace(0, R, N_x)
+y = np.linspace(0, R, N_y)
+X, Y = np.meshgrid(x, y)
 
 # Aplicar la máscara a la solución (establecer NaN en puntos fuera del semicírculo)
 solution_masked = np.where(mask, solution, np.nan)
 
-# Gráfica de la solución en el semicírculo usando pcolormesh
+# Gráfica de la solución en el semicírculo
 plt.figure(figsize=(6, 5))
-plt.pcolormesh(X, Y, solution_masked, cmap='hot', shading='auto')
+plt.contourf(X, Y, solution_masked.T, 50, cmap='hot')
 plt.colorbar(label='Temperatura')
 plt.title('Distribución de temperatura en un semicírculo en coordenadas cartesianas')
 plt.xlabel('x')
 plt.ylabel('y')
-plt.gca().set_aspect('equal', adjustable='box')  # Asegurar que los ejes tienen la misma escala
 plt.show()

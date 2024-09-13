@@ -1,4 +1,4 @@
-# /e3/core/_typing.py
+# /e/core/_typing.py
 
 from typing import (
     List,
@@ -21,3 +21,5 @@ __all__ = [
     'DefaultDict',
     'Union'
 ]
+
+InputsLike = Dict[str, Any]
