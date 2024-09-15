@@ -1,0 +1,6 @@
+\begin{Verbatim}[commandchars=\\\{\}]
+\PYG{n}{K} \PYG{o}{=} \PYG{n}{stiffness\PYGZus{}matrix\PYGZus{}linear}\PYG{p}{(}\PYG{n}{n\PYGZus{}elements}\PYG{p}{)}
+\PYG{n}{f} \PYG{o}{=} \PYG{n}{load\PYGZus{}vector\PYGZus{}linear}\PYG{p}{(}\PYG{n}{n\PYGZus{}elements}\PYG{p}{)}
+\PYG{n}{K\PYGZus{}bc}\PYG{p}{,} \PYG{n}{f\PYGZus{}bc} \PYG{o}{=} \PYG{n}{apply\PYGZus{}boundary\PYGZus{}conditions}\PYG{p}{(}\PYG{n}{K}\PYG{p}{,} \PYG{n}{f}\PYG{p}{)}
+\PYG{n}{u} \PYG{o}{=} \PYG{n}{solve}\PYG{p}{(}\PYG{n}{K\PYGZus{}bc}\PYG{p}{,} \PYG{n}{f\PYGZus{}bc}\PYG{p}{)}
+\end{Verbatim}

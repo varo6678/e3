@@ -1,0 +1,108 @@
+
+\newcommand\asignatura{
+Minería de Datos
+}
+
+\newcommand\nombrepec{
+\vspace{0.25cm}
+Proyecto de minería de datos
+
+}
+
+\newcommand\numeropec{
+2
+}
+
+% \newcommand{\pec}{PEC}
+\newcommand{\PRA}{PRA}
+
+\newcommand\autor{
+Álvaro Monforte Marín
+}
+
+\newcommand\tipopuntuacion{
+% \%
+% points
+% puntos
+p
+}
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Funciones propias:
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+% Para realizar ejercicios
+\newcommand{\ejercicio}[3]{
+\ifthenelse{\equal{#1}{true}}{\newpage}{}
+\section{Ejercicio #2 \normalsize \textbf{$[#3 \tipopuntuacion]$}}
+}
+
+% % Para realizar practicas
+% \newcommand{\tematica}[4]{
+% \ifthenelse{\equal{#1}{true}}{\newpage}{}
+% \section{#2 \textbf{$[#3 \text{\tipopuntuacion}]$}}
+% \textbf{#4}
+% \vspace{0.15cm}
+% % \subsubsection{Respuesta/as al #2}
+% }
+
+% \newcommand{\subtematica}[4]{
+% \ifthenelse{\equal{#1}{true}}{\newpage}{}
+% \subsection{#2 \textbf{$[#3 \text{\tipopuntuacion}]$}}
+% \textbf{#4}
+% \vspace{0.15cm}
+% % \subsubsection{Respuesta/as al #2}
+% }
+
+
+% Para introducir imagenes
+% (ejemplo: \insertimage{nombre_de_la_imagen}{ancho_de_la_imagen}{leyenda_de_la_imagen})
+
+\usepackage{graphicx}
+\usepackage{float}
+
+\newcommand{\imagen}[3]{
+\begin{figure}[H]
+\centering
+\includegraphics[scale=#2]{#1}
+\caption[#3]{#3}
+\label{fig:#1}
+\end{figure}
+}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\newcommand{\documento}[2]{\href{#1}{#2}}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+%%%%%%%%%%%%%%%%%%% VARIABLES GLOBALES DEFINIDAS
+\newcommand{\mongodb}{\href{https://www.mongodb.com/}{MongoDB} }
+
+
+% EDICION
+\newcommand{\propertyofauthor}[1]{Produced and edited by the author of this document using #1.}
+\newcommand{\propiedadautor}[1]{Producido y editado por el autor de este documento usando #1.}
+\newcommand{\propiedaddeautor}[1]{Producido y editado por el autor de este documento usando #1.}
+\newcommand{\latex}{\LaTeX}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Colores:
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% \usepackage{xcolor}
+% \definecolor{salmon}{RGB}{250, 110, 80}
+% \definecolor{lightsalmon}{RGB}{255, 193, 122}
+% \definecolor{mycolor}{RGB}{255,255,204} % Define your color here
+
+% \usepackage{hyperref}
+% \hypersetup{
+%   colorlinks   = true, 
+%   urlcolor     = salmon,
+%   linkcolor    = salmon, 
+%   citecolor   = salmon 
+% }

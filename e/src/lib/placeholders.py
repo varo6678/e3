@@ -1,23 +1,23 @@
 # /e/src/lib/placeholders.py
 
-from dataclasses import dataclass
+from ..core._typing import Optional
+from ..core._abstractas import Parametros
 
-@dataclass
-class ParametrosFisicos:
-    """Class for keeping track of an item in inventory."""
-    T0: float
-    T1: float
+__all__ = [
+    'ParametrosFisicos',
+    'NpuntosDireccion',
+    'ParametrosGeometricos',
+    'ParametrosComputacionales'
+]
 
-@dataclass
-class NpuntosDireccion:
-    Nx: int
-    Ny: int
+class ParametrosFisicos(Parametros):
+    pass
 
-@dataclass
-class ParametrosGeometricos:
-    R: float
-    
-@dataclass
-class ParametrosComputacionales:
-    max_iteraciones: int
-    tolerancia: float
+class NpuntosDireccion(Parametros):
+    pass
+
+class ParametrosGeometricos(Parametros):
+    pass
+
+class ParametrosComputacionales(Parametros):
+    pass

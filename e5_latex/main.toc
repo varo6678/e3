@@ -1,0 +1,34 @@
+\babel@toc {spanish}{}\relax 
+\contentsline {chapter}{Copyright}{\es@scroman {i}}{section*.1}%
+\contentsline {chapter}{\'Indice general}{\es@scroman {ii}}{section*.3}%
+\contentsline {chapter}{Lista de Figuras}{\es@scroman {iii}}{section*.4}%
+\contentsline {chapter}{Lista de Tablas}{\es@scroman {iv}}{section*.5}%
+\contentsline {chapter}{\numberline {1}Introducción}{1}{chapter.1}%
+\contentsline {chapter}{\numberline {2}Metodología}{2}{chapter.2}%
+\contentsline {section}{\numberline {2.1}Formulación del problema}{2}{section.2.1}%
+\contentsline {section}{\numberline {2.2}Discretización del dominio}{2}{section.2.2}%
+\contentsline {section}{\numberline {2.3}Cálculo del sistema lineal}{2}{section.2.3}%
+\contentsline {section}{\numberline {2.4}Implementación}{3}{section.2.4}%
+\contentsline {section}{\numberline {2.5}Implementación en Python}{3}{section.2.5}%
+\contentsline {subsection}{\numberline {2.5.1}Importación de librerías}{3}{subsection.2.5.1}%
+\contentsline {subsection}{\numberline {2.5.2}Funciones para el método de elementos finitos}{3}{subsection.2.5.2}%
+\contentsline {subsection}{\numberline {2.5.3}Matriz de rigidez para elementos lineales}{3}{subsection.2.5.3}%
+\contentsline {subsection}{\numberline {2.5.4}Vector de carga para elementos lineales}{4}{subsection.2.5.4}%
+\contentsline {subsection}{\numberline {2.5.5}Condiciones de contorno}{4}{subsection.2.5.5}%
+\contentsline {subsection}{\numberline {2.5.6}Matriz de rigidez y vector de carga para elementos cuadráticos}{4}{subsection.2.5.6}%
+\contentsline {subsection}{\numberline {2.5.7}Resolución del sistema}{4}{subsection.2.5.7}%
+\contentsline {subsection}{\numberline {2.5.8}Comparación con la solución analítica}{5}{subsection.2.5.8}%
+\contentsline {subsection}{\numberline {2.5.9}Análisis de errores y convergencia}{5}{subsection.2.5.9}%
+\contentsline {subsection}{\numberline {2.5.10}Cálculo del error \( L^2 \)}{5}{subsection.2.5.10}%
+\contentsline {subsection}{\numberline {2.5.11}Estudio de convergencia}{5}{subsection.2.5.11}%
+\contentsline {chapter}{\numberline {3}Resultados}{6}{chapter.3}%
+\contentsline {section}{\numberline {3.1}Solución analítica}{6}{section.3.1}%
+\contentsline {section}{\numberline {3.2}Comparación gráfica}{6}{section.3.2}%
+\contentsline {section}{\numberline {3.3}Errores en norma \(L^2\)}{7}{section.3.3}%
+\contentsline {section}{\numberline {3.4}Convergencia y \(L^2\)}{8}{section.3.4}%
+\contentsline {chapter}{\numberline {4}Discusión}{9}{chapter.4}%
+\contentsline {section}{\numberline {4.1}Convergencia y precisión}{9}{section.4.1}%
+\contentsline {section}{\numberline {4.2}Análisis de los errores}{9}{section.4.2}%
+\contentsline {section}{\numberline {4.3}Conclusiones}{9}{section.4.3}%
+\contentsline {chapter}{\numberline {A}main.py}{10}{appendix.Alph1}%
+\contentsline {chapter}{Bibliografia}{10}{section.4.3}%

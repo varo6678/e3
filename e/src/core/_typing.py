@@ -1,25 +1,48 @@
-# /e/core/_typing.py
+# /e/src/core/_typing.py
+
+from ... import np
 
 from typing import (
-    List,
-    Dict,
-    Tuple,
+    Dict, 
     Any,
-    Callable,
+    Union,
+    Tuple,
+    List,
     Optional,
-    DefaultDict,
-    Union
+    TypeVar,
+    Generic,
+    Callable
 )
 
 __all__ = [
-    'List',
-    'Dict',
-    'Tuple',
+    'Dict', 
     'Any',
-    'Callable',
+    'Union',
+    'Tuple',
+    'List',
     'Optional',
-    'DefaultDict',
-    'Union'
+    'TypeVar',
+    'Generic',
+    'Callable',
+    'HiperparametrosLike',
+    'ModuloLike',
+    'CoordenadaLike',
+    'CoordenadasLike',
+    'DictOptionsLIke',
+    'InputLike',
+    'ResultadosLike',
+    'ListaStringsLike',
+    'DictParametrosLike',
+    'ListaIntLike'
 ]
 
-InputsLike = Dict[str, Any]
+type ResultadosLike = Dict[str, Any]
+type DictOptionsLIke = Dict[str, Any]
+type DictParametrosLike = Dict[str, Any]
+type HiperparametrosLike = Dict[str, int | float]
+type ModuloLike = float
+type CoordenadaLike = float | np.ndarray | int
+type CoordenadasLike = Tuple[CoordenadaLike, ...]
+type InputLike = Tuple[int | float]
+type ListaStringsLike = List[str]
+type ListaIntLike = List[int]

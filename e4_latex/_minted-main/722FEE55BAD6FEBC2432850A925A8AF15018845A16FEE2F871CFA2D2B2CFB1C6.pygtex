@@ -1,0 +1,25 @@
+\begin{Verbatim}[commandchars=\\\{\}]
+\PYG{c+c1}{\PYGZsh{} /e/src/lib/placeholders.py}
+
+\PYG{k+kn}{from} \PYG{n+nn}{..core.\PYGZus{}typing} \PYG{k+kn}{import} \PYG{n}{Optional}
+\PYG{k+kn}{from} \PYG{n+nn}{..core.\PYGZus{}abstractas} \PYG{k+kn}{import} \PYG{n}{Parametros}
+
+\PYG{n}{\PYGZus{}\PYGZus{}all\PYGZus{}\PYGZus{}} \PYG{o}{=} \PYG{p}{[}
+    \PYG{l+s+s1}{\PYGZsq{}ParametrosFisicos\PYGZsq{}}\PYG{p}{,}
+    \PYG{l+s+s1}{\PYGZsq{}NpuntosDireccion\PYGZsq{}}\PYG{p}{,}
+    \PYG{l+s+s1}{\PYGZsq{}ParametrosGeometricos\PYGZsq{}}\PYG{p}{,}
+    \PYG{l+s+s1}{\PYGZsq{}ParametrosComputacionales\PYGZsq{}}
+\PYG{p}{]}
+
+\PYG{k}{class} \PYG{n+nc}{ParametrosFisicos}\PYG{p}{(}\PYG{n}{Parametros}\PYG{p}{):}
+    \PYG{k}{pass}
+
+\PYG{k}{class} \PYG{n+nc}{NpuntosDireccion}\PYG{p}{(}\PYG{n}{Parametros}\PYG{p}{):}
+    \PYG{k}{pass}
+
+\PYG{k}{class} \PYG{n+nc}{ParametrosGeometricos}\PYG{p}{(}\PYG{n}{Parametros}\PYG{p}{):}
+    \PYG{k}{pass}
+
+\PYG{k}{class} \PYG{n+nc}{ParametrosComputacionales}\PYG{p}{(}\PYG{n}{Parametros}\PYG{p}{):}
+    \PYG{k}{pass}
+\end{Verbatim}

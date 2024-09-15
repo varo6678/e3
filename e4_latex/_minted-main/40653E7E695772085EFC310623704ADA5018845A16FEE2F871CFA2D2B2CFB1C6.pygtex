@@ -1,0 +1,270 @@
+\begin{Verbatim}[commandchars=\\\{\}]
+\PYG{c+c1}{\PYGZsh{} /e/src/lib/metodos\PYGZus{}numericos.py}
+
+\PYG{k+kn}{from} \PYG{n+nn}{...} \PYG{k+kn}{import} \PYG{n}{np}
+\PYG{k+kn}{from} \PYG{n+nn}{.logger} \PYG{k+kn}{import} \PYG{n}{define\PYGZus{}logger}
+\PYG{k+kn}{from} \PYG{n+nn}{..core.\PYGZus{}typing} \PYG{k+kn}{import} \PYG{n}{Callable}
+
+\PYG{n}{\PYGZus{}\PYGZus{}all\PYGZus{}\PYGZus{}} \PYG{o}{=} \PYG{p}{[}
+    \PYG{l+s+s1}{\PYGZsq{}solve\PYGZus{}wave\PYGZus{}eq\PYGZsq{}}\PYG{p}{,}
+    \PYG{l+s+s1}{\PYGZsq{}jacobi\PYGZsq{}}\PYG{p}{,}
+    \PYG{l+s+s1}{\PYGZsq{}gauss\PYGZus{}seidel\PYGZsq{}}\PYG{p}{,}
+    \PYG{l+s+s1}{\PYGZsq{}gauss\PYGZus{}seidel\PYGZus{}sor\PYGZsq{}}
+\PYG{p}{]}
+
+\PYG{n}{informer} \PYG{o}{=} \PYG{n}{define\PYGZus{}logger}\PYG{p}{(}\PYG{n}{logger\PYGZus{}name}\PYG{o}{=}\PYG{l+s+s1}{\PYGZsq{}mna\PYGZsq{}}\PYG{p}{,} \PYG{n}{logger\PYGZus{}level}\PYG{o}{=}\PYG{l+s+s1}{\PYGZsq{}INFO\PYGZsq{}}\PYG{p}{)}
+
+\PYG{k}{def} \PYG{n+nf}{DiferenciasFinitas2D}\PYG{p}{(}
+    \PYG{n}{u}\PYG{p}{:} \PYG{n}{np}\PYG{o}{.}\PYG{n}{ndarray}\PYG{p}{,}
+    \PYG{n}{Nx}\PYG{p}{:} \PYG{n+nb}{int}\PYG{p}{,}
+    \PYG{n}{Ny}\PYG{p}{:} \PYG{n+nb}{int}\PYG{p}{,}
+    \PYG{n}{update\PYGZus{}rule}\PYG{p}{:} \PYG{n}{Callable}\PYG{p}{[[}\PYG{n}{np}\PYG{o}{.}\PYG{n}{ndarray}\PYG{p}{,} \PYG{n+nb}{int}\PYG{p}{,} \PYG{n+nb}{int}\PYG{p}{],} \PYG{n+nb}{float}\PYG{p}{],}  \PYG{c+c1}{\PYGZsh{} Función para actualizar u[i,j]}
+    \PYG{n}{tol}\PYG{p}{:} \PYG{n+nb}{float} \PYG{o}{=} \PYG{l+m+mf}{1e\PYGZhy{}6}\PYG{p}{,}
+    \PYG{n}{max\PYGZus{}iter}\PYG{p}{:} \PYG{n+nb}{int} \PYG{o}{=} \PYG{n+nb}{int}\PYG{p}{(}\PYG{l+m+mf}{1e4}\PYG{p}{)}
+    \PYG{p}{)} \PYG{o}{\PYGZhy{}\PYGZgt{}} \PYG{n}{np}\PYG{o}{.}\PYG{n}{ndarray}\PYG{p}{:}
+
+    \PYG{k}{for} \PYG{n}{iteracion} \PYG{o+ow}{in} \PYG{n+nb}{range}\PYG{p}{(}\PYG{n}{max\PYGZus{}iter}\PYG{p}{):}
+        \PYG{n}{u\PYGZus{}old} \PYG{o}{=} \PYG{n}{np}\PYG{o}{.}\PYG{n}{copy}\PYG{p}{(}\PYG{n}{u}\PYG{p}{)}
+
+        \PYG{c+c1}{\PYGZsh{} Iterar sobre los puntos internos.}
+        \PYG{k}{for} \PYG{n}{i} \PYG{o+ow}{in} \PYG{n+nb}{range}\PYG{p}{(}\PYG{l+m+mi}{1}\PYG{p}{,} \PYG{n}{Nx}\PYG{o}{\PYGZhy{}}\PYG{l+m+mi}{1}\PYG{p}{):}
+            \PYG{k}{for} \PYG{n}{j} \PYG{o+ow}{in} \PYG{n+nb}{range}\PYG{p}{(}\PYG{l+m+mi}{1}\PYG{p}{,} \PYG{n}{Ny}\PYG{o}{\PYGZhy{}}\PYG{l+m+mi}{1}\PYG{p}{):}
+                \PYG{c+c1}{\PYGZsh{} Llamada a la regla de actualización que depende de la ecuación.}
+                \PYG{n}{u}\PYG{p}{[}\PYG{n}{i}\PYG{p}{,} \PYG{n}{j}\PYG{p}{]} \PYG{o}{=} \PYG{n}{update\PYGZus{}rule}\PYG{p}{(}\PYG{n}{u\PYGZus{}old}\PYG{p}{,} \PYG{n}{i}\PYG{p}{,} \PYG{n}{j}\PYG{p}{)}
+
+        \PYG{c+c1}{\PYGZsh{} Criterio de convergencia}
+        \PYG{n}{error} \PYG{o}{=} \PYG{n}{np}\PYG{o}{.}\PYG{n}{max}\PYG{p}{(}\PYG{n}{np}\PYG{o}{.}\PYG{n}{abs}\PYG{p}{(}\PYG{n}{u} \PYG{o}{\PYGZhy{}} \PYG{n}{u\PYGZus{}old}\PYG{p}{))}
+        \PYG{k}{if} \PYG{n}{error} \PYG{o}{\PYGZlt{}} \PYG{n}{tol}\PYG{p}{:}
+            \PYG{n+nb}{print}\PYG{p}{(}\PYG{l+s+sa}{f}\PYG{l+s+s2}{\PYGZdq{}Convergencia alcanzada después de }\PYG{l+s+si}{\PYGZob{}}\PYG{n}{iteracion}\PYG{l+s+si}{\PYGZcb{}}\PYG{l+s+s2}{ iteraciones.\PYGZdq{}}\PYG{p}{)}
+            \PYG{k}{return} \PYG{n}{u}\PYG{p}{,} \PYG{n}{iteracion}
+
+    \PYG{n+nb}{print}\PYG{p}{(}\PYG{l+s+sa}{f}\PYG{l+s+s2}{\PYGZdq{}No se alcanzó la convergencia después de }\PYG{l+s+si}{\PYGZob{}}\PYG{n}{max\PYGZus{}iter}\PYG{l+s+si}{\PYGZcb{}}\PYG{l+s+s2}{ iteraciones.\PYGZdq{}}\PYG{p}{)}
+    \PYG{k}{return} \PYG{n}{u}\PYG{p}{,} \PYG{n}{max\PYGZus{}iter}
+
+\PYG{k}{def} \PYG{n+nf}{solve\PYGZus{}wave\PYGZus{}eq}\PYG{p}{(}\PYG{n}{Nx}\PYG{p}{,} \PYG{n}{Nt}\PYG{p}{,} \PYG{n}{L}\PYG{p}{,} \PYG{n}{T}\PYG{p}{,} \PYG{n}{cfl}\PYG{p}{):}
+    \PYG{l+s+sd}{\PYGZdq{}\PYGZdq{}\PYGZdq{}}
+\PYG{l+s+sd}{    Resuelve la ecuación de onda hiperbólica con el esquema explícito en diferencias finitas.}
+
+\PYG{l+s+sd}{    Args:}
+\PYG{l+s+sd}{    \PYGZhy{} Nx: Número de puntos en la dirección espacial (x).}
+\PYG{l+s+sd}{    \PYGZhy{} Nt: Número de puntos en la dirección temporal (t).}
+\PYG{l+s+sd}{    \PYGZhy{} L: Longitud del dominio espacial.}
+\PYG{l+s+sd}{    \PYGZhy{} T: Tiempo total a simular.}
+\PYG{l+s+sd}{    \PYGZhy{} cfl: Número de Courant (CFL), define la relación entre dt y dx.}
+
+\PYG{l+s+sd}{    Returns:}
+\PYG{l+s+sd}{    \PYGZhy{} u: Matriz con las soluciones aproximadas.}
+\PYG{l+s+sd}{    \PYGZhy{} x: Vector de posiciones espaciales.}
+\PYG{l+s+sd}{    \PYGZhy{} t: Vector de tiempos.}
+\PYG{l+s+sd}{    \PYGZdq{}\PYGZdq{}\PYGZdq{}}
+    \PYG{c+c1}{\PYGZsh{} Discretización espacial y temporal}
+    \PYG{n}{dx} \PYG{o}{=} \PYG{n}{L} \PYG{o}{/} \PYG{p}{(}\PYG{n}{Nx} \PYG{o}{\PYGZhy{}} \PYG{l+m+mi}{1}\PYG{p}{)}
+    \PYG{n}{dt} \PYG{o}{=} \PYG{n}{cfl} \PYG{o}{*} \PYG{n}{dx}  \PYG{c+c1}{\PYGZsh{} Para mantener la estabilidad, dt \PYGZlt{}= dx/c}
+    \PYG{n}{x} \PYG{o}{=} \PYG{n}{np}\PYG{o}{.}\PYG{n}{linspace}\PYG{p}{(}\PYG{l+m+mi}{0}\PYG{p}{,} \PYG{n}{L}\PYG{p}{,} \PYG{n}{Nx}\PYG{p}{)}
+    \PYG{n}{t} \PYG{o}{=} \PYG{n}{np}\PYG{o}{.}\PYG{n}{linspace}\PYG{p}{(}\PYG{l+m+mi}{0}\PYG{p}{,} \PYG{n}{T}\PYG{p}{,} \PYG{n}{Nt}\PYG{p}{)}
+
+    \PYG{c+c1}{\PYGZsh{} Coeficiente de estabilidad CFL}
+    \PYG{n}{r} \PYG{o}{=} \PYG{p}{(}\PYG{n}{dt} \PYG{o}{/} \PYG{n}{dx}\PYG{p}{)}\PYG{o}{**}\PYG{l+m+mi}{2}
+
+    \PYG{c+c1}{\PYGZsh{} Inicialización de la solución}
+    \PYG{n}{u} \PYG{o}{=} \PYG{n}{np}\PYG{o}{.}\PYG{n}{zeros}\PYG{p}{((}\PYG{n}{Nt}\PYG{p}{,} \PYG{n}{Nx}\PYG{p}{))}
+    \PYG{n}{informer}\PYG{o}{.}\PYG{n}{debug}\PYG{p}{(}\PYG{n}{u}\PYG{p}{)}
+
+    \PYG{c+c1}{\PYGZsh{} Condiciones iniciales}
+    \PYG{n}{u}\PYG{p}{[}\PYG{l+m+mi}{0}\PYG{p}{,} \PYG{p}{:]} \PYG{o}{=} \PYG{n}{x} \PYG{o}{*} \PYG{p}{(}\PYG{l+m+mi}{1} \PYG{o}{\PYGZhy{}} \PYG{n}{x}\PYG{p}{)}  \PYG{c+c1}{\PYGZsh{} u(x, 0) = x(1 \PYGZhy{} x)}
+
+    \PYG{c+c1}{\PYGZsh{} Primera iteración: derivada temporal cero}
+    \PYG{n}{u}\PYG{p}{[}\PYG{l+m+mi}{1}\PYG{p}{,} \PYG{p}{:]} \PYG{o}{=} \PYG{n}{u}\PYG{p}{[}\PYG{l+m+mi}{0}\PYG{p}{,} \PYG{p}{:]}  \PYG{c+c1}{\PYGZsh{} u\PYGZus{}t(x, 0) = 0 implica que u[1, :] = u[0, :]}
+
+    \PYG{c+c1}{\PYGZsh{} Aplicar condiciones de frontera}
+    \PYG{n}{u}\PYG{p}{[:,} \PYG{l+m+mi}{0}\PYG{p}{]} \PYG{o}{=} \PYG{l+m+mi}{0}  \PYG{c+c1}{\PYGZsh{} u(0, t) = 0}
+    \PYG{n}{u}\PYG{p}{[:,} \PYG{o}{\PYGZhy{}}\PYG{l+m+mi}{1}\PYG{p}{]} \PYG{o}{=} \PYG{l+m+mi}{0}  \PYG{c+c1}{\PYGZsh{} u(1, t) = 0}
+
+    \PYG{c+c1}{\PYGZsh{} Iteraciones en el tiempo}
+    \PYG{k}{for} \PYG{n}{n} \PYG{o+ow}{in} \PYG{n+nb}{range}\PYG{p}{(}\PYG{l+m+mi}{1}\PYG{p}{,} \PYG{n}{Nt}\PYG{o}{\PYGZhy{}}\PYG{l+m+mi}{1}\PYG{p}{):}
+        \PYG{k}{for} \PYG{n}{i} \PYG{o+ow}{in} \PYG{n+nb}{range}\PYG{p}{(}\PYG{l+m+mi}{1}\PYG{p}{,} \PYG{n}{Nx}\PYG{o}{\PYGZhy{}}\PYG{l+m+mi}{1}\PYG{p}{):}
+            \PYG{n}{u}\PYG{p}{[}\PYG{n}{n}\PYG{o}{+}\PYG{l+m+mi}{1}\PYG{p}{,} \PYG{n}{i}\PYG{p}{]} \PYG{o}{=} \PYG{p}{(}\PYG{l+m+mi}{2} \PYG{o}{*} \PYG{n}{u}\PYG{p}{[}\PYG{n}{n}\PYG{p}{,} \PYG{n}{i}\PYG{p}{]} \PYG{o}{\PYGZhy{}} \PYG{n}{u}\PYG{p}{[}\PYG{n}{n}\PYG{o}{\PYGZhy{}}\PYG{l+m+mi}{1}\PYG{p}{,} \PYG{n}{i}\PYG{p}{]} \PYG{o}{+}
+                         \PYG{n}{r} \PYG{o}{*} \PYG{p}{(}\PYG{n}{u}\PYG{p}{[}\PYG{n}{n}\PYG{p}{,} \PYG{n}{i}\PYG{o}{+}\PYG{l+m+mi}{1}\PYG{p}{]} \PYG{o}{\PYGZhy{}} \PYG{l+m+mi}{2} \PYG{o}{*} \PYG{n}{u}\PYG{p}{[}\PYG{n}{n}\PYG{p}{,} \PYG{n}{i}\PYG{p}{]} \PYG{o}{+} \PYG{n}{u}\PYG{p}{[}\PYG{n}{n}\PYG{p}{,} \PYG{n}{i}\PYG{o}{\PYGZhy{}}\PYG{l+m+mi}{1}\PYG{p}{])} \PYG{o}{+}
+                         \PYG{n}{dt}\PYG{o}{**}\PYG{l+m+mi}{2} \PYG{o}{*} \PYG{p}{(}\PYG{l+m+mi}{1} \PYG{o}{\PYGZhy{}} \PYG{n}{x}\PYG{p}{[}\PYG{n}{i}\PYG{p}{]}\PYG{o}{**}\PYG{l+m+mi}{2}\PYG{p}{))}
+
+    \PYG{k}{return} \PYG{n}{u}\PYG{p}{,} \PYG{n}{x}\PYG{p}{,} \PYG{n}{t}
+
+
+\PYG{k}{def} \PYG{n+nf}{solve\PYGZus{}wave\PYGZus{}eq}\PYG{p}{(}\PYG{n}{Nx}\PYG{p}{,} \PYG{n}{Nt}\PYG{p}{,} \PYG{n}{L}\PYG{p}{,} \PYG{n}{T}\PYG{p}{,} \PYG{n}{cfl}\PYG{p}{):}
+    \PYG{l+s+sd}{\PYGZdq{}\PYGZdq{}\PYGZdq{}}
+\PYG{l+s+sd}{    Resuelve la ecuación de onda hiperbólica con el esquema explícito en diferencias finitas.}
+
+\PYG{l+s+sd}{    Args:}
+\PYG{l+s+sd}{    \PYGZhy{} Nx: Número de puntos en la dirección espacial (x).}
+\PYG{l+s+sd}{    \PYGZhy{} Nt: Número de puntos en la dirección temporal (t).}
+\PYG{l+s+sd}{    \PYGZhy{} L: Longitud del dominio espacial.}
+\PYG{l+s+sd}{    \PYGZhy{} T: Tiempo total a simular.}
+\PYG{l+s+sd}{    \PYGZhy{} cfl: Número de Courant (CFL), define la relación entre dt y dx.}
+
+\PYG{l+s+sd}{    Returns:}
+\PYG{l+s+sd}{    \PYGZhy{} u: Matriz con las soluciones aproximadas.}
+\PYG{l+s+sd}{    \PYGZhy{} x: Vector de posiciones espaciales.}
+\PYG{l+s+sd}{    \PYGZhy{} t: Vector de tiempos.}
+\PYG{l+s+sd}{    \PYGZdq{}\PYGZdq{}\PYGZdq{}}
+    \PYG{c+c1}{\PYGZsh{} Discretización espacial y temporal}
+    \PYG{n}{dx} \PYG{o}{=} \PYG{n}{L} \PYG{o}{/} \PYG{p}{(}\PYG{n}{Nx} \PYG{o}{\PYGZhy{}} \PYG{l+m+mi}{1}\PYG{p}{)}
+    \PYG{n}{dt} \PYG{o}{=} \PYG{n}{cfl} \PYG{o}{*} \PYG{n}{dx}  \PYG{c+c1}{\PYGZsh{} Para mantener la estabilidad, dt \PYGZlt{}= dx/c}
+    \PYG{n}{x} \PYG{o}{=} \PYG{n}{np}\PYG{o}{.}\PYG{n}{linspace}\PYG{p}{(}\PYG{l+m+mi}{0}\PYG{p}{,} \PYG{n}{L}\PYG{p}{,} \PYG{n}{Nx}\PYG{p}{)}
+    \PYG{n}{t} \PYG{o}{=} \PYG{n}{np}\PYG{o}{.}\PYG{n}{linspace}\PYG{p}{(}\PYG{l+m+mi}{0}\PYG{p}{,} \PYG{n}{T}\PYG{p}{,} \PYG{n}{Nt}\PYG{p}{)}
+
+    \PYG{c+c1}{\PYGZsh{} Coeficiente de estabilidad CFL}
+    \PYG{n}{r} \PYG{o}{=} \PYG{p}{(}\PYG{n}{dt} \PYG{o}{/} \PYG{n}{dx}\PYG{p}{)}\PYG{o}{**}\PYG{l+m+mi}{2}
+
+    \PYG{c+c1}{\PYGZsh{} Inicialización de la solución}
+    \PYG{n}{u} \PYG{o}{=} \PYG{n}{np}\PYG{o}{.}\PYG{n}{zeros}\PYG{p}{((}\PYG{n}{Nt}\PYG{p}{,} \PYG{n}{Nx}\PYG{p}{))}
+    \PYG{n}{informer}\PYG{o}{.}\PYG{n}{debug}\PYG{p}{(}\PYG{n}{u}\PYG{p}{)}
+
+    \PYG{c+c1}{\PYGZsh{} Condiciones iniciales}
+    \PYG{n}{u}\PYG{p}{[}\PYG{l+m+mi}{0}\PYG{p}{,} \PYG{p}{:]} \PYG{o}{=} \PYG{n}{x} \PYG{o}{*} \PYG{p}{(}\PYG{l+m+mi}{1} \PYG{o}{\PYGZhy{}} \PYG{n}{x}\PYG{p}{)}  \PYG{c+c1}{\PYGZsh{} u(x, 0) = x(1 \PYGZhy{} x)}
+
+    \PYG{c+c1}{\PYGZsh{} Primera iteración: derivada temporal cero}
+    \PYG{n}{u}\PYG{p}{[}\PYG{l+m+mi}{1}\PYG{p}{,} \PYG{p}{:]} \PYG{o}{=} \PYG{n}{u}\PYG{p}{[}\PYG{l+m+mi}{0}\PYG{p}{,} \PYG{p}{:]}  \PYG{c+c1}{\PYGZsh{} u\PYGZus{}t(x, 0) = 0 implica que u[1, :] = u[0, :]}
+
+    \PYG{c+c1}{\PYGZsh{} Aplicar condiciones de frontera}
+    \PYG{n}{u}\PYG{p}{[:,} \PYG{l+m+mi}{0}\PYG{p}{]} \PYG{o}{=} \PYG{l+m+mi}{0}  \PYG{c+c1}{\PYGZsh{} u(0, t) = 0}
+    \PYG{n}{u}\PYG{p}{[:,} \PYG{o}{\PYGZhy{}}\PYG{l+m+mi}{1}\PYG{p}{]} \PYG{o}{=} \PYG{l+m+mi}{0}  \PYG{c+c1}{\PYGZsh{} u(1, t) = 0}
+
+    \PYG{c+c1}{\PYGZsh{} Iteraciones en el tiempo}
+    \PYG{k}{for} \PYG{n}{n} \PYG{o+ow}{in} \PYG{n+nb}{range}\PYG{p}{(}\PYG{l+m+mi}{1}\PYG{p}{,} \PYG{n}{Nt}\PYG{o}{\PYGZhy{}}\PYG{l+m+mi}{1}\PYG{p}{):}
+        \PYG{k}{for} \PYG{n}{i} \PYG{o+ow}{in} \PYG{n+nb}{range}\PYG{p}{(}\PYG{l+m+mi}{1}\PYG{p}{,} \PYG{n}{Nx}\PYG{o}{\PYGZhy{}}\PYG{l+m+mi}{1}\PYG{p}{):}
+            \PYG{n}{u}\PYG{p}{[}\PYG{n}{n}\PYG{o}{+}\PYG{l+m+mi}{1}\PYG{p}{,} \PYG{n}{i}\PYG{p}{]} \PYG{o}{=} \PYG{p}{(}\PYG{l+m+mi}{2} \PYG{o}{*} \PYG{n}{u}\PYG{p}{[}\PYG{n}{n}\PYG{p}{,} \PYG{n}{i}\PYG{p}{]} \PYG{o}{\PYGZhy{}} \PYG{n}{u}\PYG{p}{[}\PYG{n}{n}\PYG{o}{\PYGZhy{}}\PYG{l+m+mi}{1}\PYG{p}{,} \PYG{n}{i}\PYG{p}{]} \PYG{o}{+}
+                         \PYG{n}{r} \PYG{o}{*} \PYG{p}{(}\PYG{n}{u}\PYG{p}{[}\PYG{n}{n}\PYG{p}{,} \PYG{n}{i}\PYG{o}{+}\PYG{l+m+mi}{1}\PYG{p}{]} \PYG{o}{\PYGZhy{}} \PYG{l+m+mi}{2} \PYG{o}{*} \PYG{n}{u}\PYG{p}{[}\PYG{n}{n}\PYG{p}{,} \PYG{n}{i}\PYG{p}{]} \PYG{o}{+} \PYG{n}{u}\PYG{p}{[}\PYG{n}{n}\PYG{p}{,} \PYG{n}{i}\PYG{o}{\PYGZhy{}}\PYG{l+m+mi}{1}\PYG{p}{])} \PYG{o}{+}
+                         \PYG{n}{dt}\PYG{o}{**}\PYG{l+m+mi}{2} \PYG{o}{*} \PYG{p}{(}\PYG{l+m+mi}{1} \PYG{o}{\PYGZhy{}} \PYG{n}{x}\PYG{p}{[}\PYG{n}{i}\PYG{p}{]}\PYG{o}{**}\PYG{l+m+mi}{2}\PYG{p}{))}
+
+    \PYG{k}{return} \PYG{n}{u}\PYG{p}{,} \PYG{n}{x}\PYG{p}{,} \PYG{n}{t}
+
+\PYG{k}{def} \PYG{n+nf}{jacobi}\PYG{p}{(}\PYG{n}{u}\PYG{p}{,} \PYG{n}{Nx}\PYG{p}{,} \PYG{n}{Ny}\PYG{p}{,} \PYG{n}{tol}\PYG{o}{=}\PYG{l+m+mf}{1e\PYGZhy{}6}\PYG{p}{,} \PYG{n}{max\PYGZus{}iter}\PYG{o}{=}\PYG{l+m+mi}{10000}\PYG{p}{):}
+
+    \PYG{k}{for} \PYG{n}{iteracion} \PYG{o+ow}{in} \PYG{n+nb}{range}\PYG{p}{(}\PYG{n}{max\PYGZus{}iter}\PYG{p}{):}
+        \PYG{n}{u\PYGZus{}old} \PYG{o}{=} \PYG{n}{np}\PYG{o}{.}\PYG{n}{copy}\PYG{p}{(}\PYG{n}{u}\PYG{p}{)}
+
+        \PYG{c+c1}{\PYGZsh{} Iterar sobre los puntos internos.}
+        \PYG{k}{for} \PYG{n}{i} \PYG{o+ow}{in} \PYG{n+nb}{range}\PYG{p}{(}\PYG{l+m+mi}{1}\PYG{p}{,} \PYG{n}{Nx}\PYG{o}{\PYGZhy{}}\PYG{l+m+mi}{1}\PYG{p}{):}
+            \PYG{k}{for} \PYG{n}{j} \PYG{o+ow}{in} \PYG{n+nb}{range}\PYG{p}{(}\PYG{l+m+mi}{1}\PYG{p}{,} \PYG{n}{Ny}\PYG{o}{\PYGZhy{}}\PYG{l+m+mi}{1}\PYG{p}{):}
+                \PYG{c+c1}{\PYGZsh{} Esquema para la ecuacion de Laplace.}
+                \PYG{n}{u}\PYG{p}{[}\PYG{n}{i}\PYG{p}{,} \PYG{n}{j}\PYG{p}{]} \PYG{o}{=} \PYG{l+m+mf}{0.25} \PYG{o}{*} \PYG{p}{(}\PYG{n}{u}\PYG{p}{[}\PYG{n}{i}\PYG{o}{+}\PYG{l+m+mi}{1}\PYG{p}{,} \PYG{n}{j}\PYG{p}{]} \PYG{o}{+} \PYG{n}{u}\PYG{p}{[}\PYG{n}{i}\PYG{o}{\PYGZhy{}}\PYG{l+m+mi}{1}\PYG{p}{,} \PYG{n}{j}\PYG{p}{]} \PYG{o}{+} \PYG{n}{u}\PYG{p}{[}\PYG{n}{i}\PYG{p}{,} \PYG{n}{j}\PYG{o}{+}\PYG{l+m+mi}{1}\PYG{p}{]} \PYG{o}{+} \PYG{n}{u}\PYG{p}{[}\PYG{n}{i}\PYG{p}{,} \PYG{n}{j}\PYG{o}{\PYGZhy{}}\PYG{l+m+mi}{1}\PYG{p}{])}
+
+        \PYG{c+c1}{\PYGZsh{} Criterio de convergencia}
+        \PYG{n}{error} \PYG{o}{=} \PYG{n}{np}\PYG{o}{.}\PYG{n}{max}\PYG{p}{(}\PYG{n}{np}\PYG{o}{.}\PYG{n}{abs}\PYG{p}{(}\PYG{n}{u} \PYG{o}{\PYGZhy{}} \PYG{n}{u\PYGZus{}old}\PYG{p}{))}
+        \PYG{k}{if} \PYG{n}{error} \PYG{o}{\PYGZlt{}} \PYG{n}{tol}\PYG{p}{:}
+            \PYG{n}{informer}\PYG{o}{.}\PYG{n}{info}\PYG{p}{(}\PYG{l+s+sa}{f}\PYG{l+s+s2}{\PYGZdq{}Convergencia alcanzada después de }\PYG{l+s+si}{\PYGZob{}}\PYG{n}{iteracion}\PYG{l+s+si}{\PYGZcb{}}\PYG{l+s+s2}{ iteraciones.\PYGZdq{}}\PYG{p}{)}
+            \PYG{k}{return} \PYG{n}{u}\PYG{p}{,} \PYG{n}{iteracion}
+
+    \PYG{n}{informer}\PYG{o}{.}\PYG{n}{info}\PYG{p}{(}\PYG{l+s+sa}{f}\PYG{l+s+s2}{\PYGZdq{}No se alcanzó la convergencia después de }\PYG{l+s+si}{\PYGZob{}}\PYG{n}{max\PYGZus{}iter}\PYG{l+s+si}{\PYGZcb{}}\PYG{l+s+s2}{ iteraciones.\PYGZdq{}}\PYG{p}{)}
+    \PYG{k}{return} \PYG{n}{u}\PYG{p}{,} \PYG{n}{max\PYGZus{}iter}
+
+
+\PYG{k}{def} \PYG{n+nf}{gauss\PYGZus{}seidel}\PYG{p}{(}\PYG{n}{u}\PYG{p}{,} \PYG{n}{Nx}\PYG{p}{,} \PYG{n}{Ny}\PYG{p}{,} \PYG{n}{tol}\PYG{o}{=}\PYG{l+m+mf}{1e\PYGZhy{}6}\PYG{p}{,} \PYG{n}{max\PYGZus{}iter}\PYG{o}{=}\PYG{l+m+mi}{10000}\PYG{p}{):}
+    \PYG{l+s+sd}{\PYGZdq{}\PYGZdq{}\PYGZdq{}}
+\PYG{l+s+sd}{    Método de Gauss\PYGZhy{}Seidel para resolver el sistema de ecuaciones discretizado}
+\PYG{l+s+sd}{    de la ecuación de Laplace.}
+
+\PYG{l+s+sd}{    Args:}
+\PYG{l+s+sd}{    \PYGZhy{} u: Matriz con las condiciones iniciales de temperatura.}
+\PYG{l+s+sd}{    \PYGZhy{} Nx: Número de puntos en la dirección x.}
+\PYG{l+s+sd}{    \PYGZhy{} Ny: Número de puntos en la dirección y.}
+\PYG{l+s+sd}{    \PYGZhy{} tol: Tolerancia para la convergencia.}
+\PYG{l+s+sd}{    \PYGZhy{} max\PYGZus{}iter: Máximo número de iteraciones.}
+
+\PYG{l+s+sd}{    Returns:}
+\PYG{l+s+sd}{    \PYGZhy{} u: Matriz con las soluciones aproximadas.}
+\PYG{l+s+sd}{    \PYGZhy{} iteraciones: Número de iteraciones realizadas.}
+\PYG{l+s+sd}{    \PYGZdq{}\PYGZdq{}\PYGZdq{}}
+    \PYG{k}{for} \PYG{n}{iteracion} \PYG{o+ow}{in} \PYG{n+nb}{range}\PYG{p}{(}\PYG{n}{max\PYGZus{}iter}\PYG{p}{):}
+        \PYG{n}{max\PYGZus{}error} \PYG{o}{=} \PYG{l+m+mf}{0.0}
+
+        \PYG{c+c1}{\PYGZsh{} Iterar sobre los puntos internos}
+        \PYG{k}{for} \PYG{n}{i} \PYG{o+ow}{in} \PYG{n+nb}{range}\PYG{p}{(}\PYG{l+m+mi}{1}\PYG{p}{,} \PYG{n}{Nx}\PYG{o}{\PYGZhy{}}\PYG{l+m+mi}{1}\PYG{p}{):}
+            \PYG{k}{for} \PYG{n}{j} \PYG{o+ow}{in} \PYG{n+nb}{range}\PYG{p}{(}\PYG{l+m+mi}{1}\PYG{p}{,} \PYG{n}{Ny}\PYG{o}{\PYGZhy{}}\PYG{l+m+mi}{1}\PYG{p}{):}
+                \PYG{c+c1}{\PYGZsh{} Guardar el valor anterior}
+                \PYG{n}{u\PYGZus{}old} \PYG{o}{=} \PYG{n}{u}\PYG{p}{[}\PYG{n}{i}\PYG{p}{,} \PYG{n}{j}\PYG{p}{]}
+
+                \PYG{c+c1}{\PYGZsh{} Esquema para la ecuación de Laplace}
+                \PYG{n}{u}\PYG{p}{[}\PYG{n}{i}\PYG{p}{,} \PYG{n}{j}\PYG{p}{]} \PYG{o}{=} \PYG{l+m+mf}{0.25} \PYG{o}{*} \PYG{p}{(}\PYG{n}{u}\PYG{p}{[}\PYG{n}{i}\PYG{o}{+}\PYG{l+m+mi}{1}\PYG{p}{,} \PYG{n}{j}\PYG{p}{]} \PYG{o}{+} \PYG{n}{u}\PYG{p}{[}\PYG{n}{i}\PYG{o}{\PYGZhy{}}\PYG{l+m+mi}{1}\PYG{p}{,} \PYG{n}{j}\PYG{p}{]} \PYG{o}{+} \PYG{n}{u}\PYG{p}{[}\PYG{n}{i}\PYG{p}{,} \PYG{n}{j}\PYG{o}{+}\PYG{l+m+mi}{1}\PYG{p}{]} \PYG{o}{+} \PYG{n}{u}\PYG{p}{[}\PYG{n}{i}\PYG{p}{,} \PYG{n}{j}\PYG{o}{\PYGZhy{}}\PYG{l+m+mi}{1}\PYG{p}{])}
+
+                \PYG{c+c1}{\PYGZsh{} Calcular el error máximo}
+                \PYG{n}{max\PYGZus{}error} \PYG{o}{=} \PYG{n+nb}{max}\PYG{p}{(}\PYG{n}{max\PYGZus{}error}\PYG{p}{,} \PYG{n+nb}{abs}\PYG{p}{(}\PYG{n}{u}\PYG{p}{[}\PYG{n}{i}\PYG{p}{,} \PYG{n}{j}\PYG{p}{]} \PYG{o}{\PYGZhy{}} \PYG{n}{u\PYGZus{}old}\PYG{p}{))}
+
+
+        \PYG{c+c1}{\PYGZsh{} Criterio de convergencia}
+        \PYG{k}{if} \PYG{n}{max\PYGZus{}error} \PYG{o}{\PYGZlt{}} \PYG{n}{tol}\PYG{p}{:}
+            \PYG{n}{informer}\PYG{o}{.}\PYG{n}{info}\PYG{p}{(}\PYG{l+s+sa}{f}\PYG{l+s+s2}{\PYGZdq{}Convergencia alcanzada después de }\PYG{l+s+si}{\PYGZob{}}\PYG{n}{iteracion}\PYG{l+s+si}{\PYGZcb{}}\PYG{l+s+s2}{ iteraciones.\PYGZdq{}}\PYG{p}{)}
+            \PYG{k}{return} \PYG{n}{u}\PYG{p}{,} \PYG{n}{iteracion}
+
+    \PYG{n}{informer}\PYG{o}{.}\PYG{n}{info}\PYG{p}{(}\PYG{l+s+sa}{f}\PYG{l+s+s2}{\PYGZdq{}No se alcanzó la convergencia después de }\PYG{l+s+si}{\PYGZob{}}\PYG{n}{max\PYGZus{}iter}\PYG{l+s+si}{\PYGZcb{}}\PYG{l+s+s2}{ iteraciones.\PYGZdq{}}\PYG{p}{)}
+    \PYG{k}{return} \PYG{n}{u}\PYG{p}{,} \PYG{n}{max\PYGZus{}iter}
+
+
+\PYG{k}{def} \PYG{n+nf}{gauss\PYGZus{}seidel\PYGZus{}matriz}\PYG{p}{(}\PYG{n}{A}\PYG{p}{,} \PYG{n}{b}\PYG{p}{,} \PYG{n}{tol}\PYG{o}{=}\PYG{l+m+mf}{1e\PYGZhy{}6}\PYG{p}{,} \PYG{n}{max\PYGZus{}iter}\PYG{o}{=}\PYG{l+m+mi}{10000}\PYG{p}{):}
+    \PYG{l+s+sd}{\PYGZdq{}\PYGZdq{}\PYGZdq{}}
+\PYG{l+s+sd}{    Método de Gauss\PYGZhy{}Seidel para resolver un sistema lineal Ax = b.}
+
+\PYG{l+s+sd}{    Args:}
+\PYG{l+s+sd}{    \PYGZhy{} A: Matriz de coeficientes.}
+\PYG{l+s+sd}{    \PYGZhy{} b: Vector de términos independientes.}
+\PYG{l+s+sd}{    \PYGZhy{} tol: Tolerancia para la convergencia.}
+\PYG{l+s+sd}{    \PYGZhy{} max\PYGZus{}iter: Máximo número de iteraciones.}
+
+\PYG{l+s+sd}{    Returns:}
+\PYG{l+s+sd}{    \PYGZhy{} x: Vector solución.}
+\PYG{l+s+sd}{    \PYGZhy{} iteraciones: Número de iteraciones realizadas.}
+\PYG{l+s+sd}{    \PYGZdq{}\PYGZdq{}\PYGZdq{}}
+    \PYG{n}{n} \PYG{o}{=} \PYG{n+nb}{len}\PYG{p}{(}\PYG{n}{b}\PYG{p}{)}
+    \PYG{n}{x} \PYG{o}{=} \PYG{n}{np}\PYG{o}{.}\PYG{n}{zeros\PYGZus{}like}\PYG{p}{(}\PYG{n}{b}\PYG{p}{,} \PYG{n}{dtype}\PYG{o}{=}\PYG{n}{np}\PYG{o}{.}\PYG{n}{double}\PYG{p}{)}  \PYG{c+c1}{\PYGZsh{} Vector inicial de solución}
+
+    \PYG{k}{for} \PYG{n}{iteracion} \PYG{o+ow}{in} \PYG{n+nb}{range}\PYG{p}{(}\PYG{n}{max\PYGZus{}iter}\PYG{p}{):}
+        \PYG{n}{x\PYGZus{}old} \PYG{o}{=} \PYG{n}{np}\PYG{o}{.}\PYG{n}{copy}\PYG{p}{(}\PYG{n}{x}\PYG{p}{)}
+
+        \PYG{c+c1}{\PYGZsh{} Iterar sobre cada ecuación del sistema}
+        \PYG{k}{for} \PYG{n}{i} \PYG{o+ow}{in} \PYG{n+nb}{range}\PYG{p}{(}\PYG{n}{n}\PYG{p}{):}
+            \PYG{n}{sigma} \PYG{o}{=} \PYG{l+m+mi}{0}
+            \PYG{k}{for} \PYG{n}{j} \PYG{o+ow}{in} \PYG{n+nb}{range}\PYG{p}{(}\PYG{n}{n}\PYG{p}{):}
+                \PYG{k}{if} \PYG{n}{i} \PYG{o}{!=} \PYG{n}{j}\PYG{p}{:}
+                    \PYG{n}{sigma} \PYG{o}{+=} \PYG{n}{A}\PYG{p}{[}\PYG{n}{i}\PYG{p}{,} \PYG{n}{j}\PYG{p}{]} \PYG{o}{*} \PYG{n}{x}\PYG{p}{[}\PYG{n}{j}\PYG{p}{]}
+
+            \PYG{c+c1}{\PYGZsh{} Actualizar la solución usando los valores más recientes}
+            \PYG{n}{x}\PYG{p}{[}\PYG{n}{i}\PYG{p}{]} \PYG{o}{=} \PYG{p}{(}\PYG{n}{b}\PYG{p}{[}\PYG{n}{i}\PYG{p}{]} \PYG{o}{\PYGZhy{}} \PYG{n}{sigma}\PYG{p}{)} \PYG{o}{/} \PYG{n}{A}\PYG{p}{[}\PYG{n}{i}\PYG{p}{,} \PYG{n}{i}\PYG{p}{]}
+
+        \PYG{c+c1}{\PYGZsh{} Criterio de convergencia}
+        \PYG{n}{error} \PYG{o}{=} \PYG{n}{np}\PYG{o}{.}\PYG{n}{linalg}\PYG{o}{.}\PYG{n}{norm}\PYG{p}{(}\PYG{n}{x} \PYG{o}{\PYGZhy{}} \PYG{n}{x\PYGZus{}old}\PYG{p}{,} \PYG{n+nb}{ord}\PYG{o}{=}\PYG{n}{np}\PYG{o}{.}\PYG{n}{inf}\PYG{p}{)}
+        \PYG{k}{if} \PYG{n}{error} \PYG{o}{\PYGZlt{}} \PYG{n}{tol}\PYG{p}{:}
+            \PYG{n}{informer}\PYG{o}{.}\PYG{n}{info}\PYG{p}{(}\PYG{l+s+sa}{f}\PYG{l+s+s2}{\PYGZdq{}Convergencia alcanzada después de }\PYG{l+s+si}{\PYGZob{}}\PYG{n}{iteracion}\PYG{l+s+si}{\PYGZcb{}}\PYG{l+s+s2}{ iteraciones.\PYGZdq{}}\PYG{p}{)}
+            \PYG{k}{return} \PYG{n}{x}\PYG{p}{,} \PYG{n}{iteracion}
+
+    \PYG{n}{informer}\PYG{o}{.}\PYG{n}{info}\PYG{p}{(}\PYG{l+s+sa}{f}\PYG{l+s+s2}{\PYGZdq{}No se alcanzó la convergencia después de }\PYG{l+s+si}{\PYGZob{}}\PYG{n}{max\PYGZus{}iter}\PYG{l+s+si}{\PYGZcb{}}\PYG{l+s+s2}{ iteraciones.\PYGZdq{}}\PYG{p}{)}
+    \PYG{k}{return} \PYG{n}{x}\PYG{p}{,} \PYG{n}{max\PYGZus{}iter}
+
+
+\PYG{k}{def} \PYG{n+nf}{gauss\PYGZus{}seidel\PYGZus{}sor}\PYG{p}{(}\PYG{n}{u}\PYG{p}{,} \PYG{n}{Nx}\PYG{p}{,} \PYG{n}{Ny}\PYG{p}{,} \PYG{n}{omega}\PYG{o}{=}\PYG{l+m+mf}{1.5}\PYG{p}{,} \PYG{n}{tol}\PYG{o}{=}\PYG{l+m+mf}{1e\PYGZhy{}6}\PYG{p}{,} \PYG{n}{max\PYGZus{}iter}\PYG{o}{=}\PYG{l+m+mi}{10000}\PYG{p}{):}
+
+    \PYG{k}{for} \PYG{n}{iteracion} \PYG{o+ow}{in} \PYG{n+nb}{range}\PYG{p}{(}\PYG{n}{max\PYGZus{}iter}\PYG{p}{):}
+        \PYG{n}{max\PYGZus{}error} \PYG{o}{=} \PYG{l+m+mf}{0.0}
+
+        \PYG{c+c1}{\PYGZsh{} Iterar sobre los puntos internos}
+        \PYG{k}{for} \PYG{n}{i} \PYG{o+ow}{in} \PYG{n+nb}{range}\PYG{p}{(}\PYG{l+m+mi}{1}\PYG{p}{,} \PYG{n}{Nx}\PYG{o}{\PYGZhy{}}\PYG{l+m+mi}{1}\PYG{p}{):}
+            \PYG{k}{for} \PYG{n}{j} \PYG{o+ow}{in} \PYG{n+nb}{range}\PYG{p}{(}\PYG{l+m+mi}{1}\PYG{p}{,} \PYG{n}{Ny}\PYG{o}{\PYGZhy{}}\PYG{l+m+mi}{1}\PYG{p}{):}
+                \PYG{c+c1}{\PYGZsh{} Guardar el valor anterior}
+                \PYG{n}{u\PYGZus{}old} \PYG{o}{=} \PYG{n}{u}\PYG{p}{[}\PYG{n}{i}\PYG{p}{,} \PYG{n}{j}\PYG{p}{]}
+
+                \PYG{c+c1}{\PYGZsh{} Esquema para la ecuación de Laplace (Gauss\PYGZhy{}Seidel + Sobrerrelajación)}
+                \PYG{n}{u\PYGZus{}new} \PYG{o}{=} \PYG{l+m+mf}{0.25} \PYG{o}{*} \PYG{p}{(}\PYG{n}{u}\PYG{p}{[}\PYG{n}{i}\PYG{o}{+}\PYG{l+m+mi}{1}\PYG{p}{,} \PYG{n}{j}\PYG{p}{]} \PYG{o}{+} \PYG{n}{u}\PYG{p}{[}\PYG{n}{i}\PYG{o}{\PYGZhy{}}\PYG{l+m+mi}{1}\PYG{p}{,} \PYG{n}{j}\PYG{p}{]} \PYG{o}{+} \PYG{n}{u}\PYG{p}{[}\PYG{n}{i}\PYG{p}{,} \PYG{n}{j}\PYG{o}{+}\PYG{l+m+mi}{1}\PYG{p}{]} \PYG{o}{+} \PYG{n}{u}\PYG{p}{[}\PYG{n}{i}\PYG{p}{,} \PYG{n}{j}\PYG{o}{\PYGZhy{}}\PYG{l+m+mi}{1}\PYG{p}{])}
+
+                \PYG{c+c1}{\PYGZsh{} Actualización con Sobrerrelajación}
+                \PYG{n}{u}\PYG{p}{[}\PYG{n}{i}\PYG{p}{,} \PYG{n}{j}\PYG{p}{]} \PYG{o}{=} \PYG{p}{(}\PYG{l+m+mi}{1} \PYG{o}{\PYGZhy{}} \PYG{n}{omega}\PYG{p}{)} \PYG{o}{*} \PYG{n}{u\PYGZus{}old} \PYG{o}{+} \PYG{n}{omega} \PYG{o}{*} \PYG{n}{u\PYGZus{}new}
+
+                \PYG{c+c1}{\PYGZsh{} Calcular el error máximo}
+                \PYG{n}{max\PYGZus{}error} \PYG{o}{=} \PYG{n+nb}{max}\PYG{p}{(}\PYG{n}{max\PYGZus{}error}\PYG{p}{,} \PYG{n+nb}{abs}\PYG{p}{(}\PYG{n}{u}\PYG{p}{[}\PYG{n}{i}\PYG{p}{,} \PYG{n}{j}\PYG{p}{]} \PYG{o}{\PYGZhy{}} \PYG{n}{u\PYGZus{}old}\PYG{p}{))}
+
+        \PYG{c+c1}{\PYGZsh{} Criterio de convergencia}
+        \PYG{k}{if} \PYG{n}{max\PYGZus{}error} \PYG{o}{\PYGZlt{}} \PYG{n}{tol}\PYG{p}{:}
+            \PYG{n}{informer}\PYG{o}{.}\PYG{n}{info}\PYG{p}{(}\PYG{l+s+sa}{f}\PYG{l+s+s2}{\PYGZdq{}Convergencia alcanzada después de }\PYG{l+s+si}{\PYGZob{}}\PYG{n}{iteracion}\PYG{l+s+si}{\PYGZcb{}}\PYG{l+s+s2}{ iteraciones.\PYGZdq{}}\PYG{p}{)}
+            \PYG{k}{return} \PYG{n}{u}\PYG{p}{,} \PYG{n}{iteracion}
+
+    \PYG{n}{informer}\PYG{o}{.}\PYG{n}{info}\PYG{p}{(}\PYG{l+s+sa}{f}\PYG{l+s+s2}{\PYGZdq{}No se alcanzó la convergencia después de }\PYG{l+s+si}{\PYGZob{}}\PYG{n}{max\PYGZus{}iter}\PYG{l+s+si}{\PYGZcb{}}\PYG{l+s+s2}{ iteraciones.\PYGZdq{}}\PYG{p}{)}
+    \PYG{k}{return} \PYG{n}{u}\PYG{p}{,} \PYG{n}{max\PYGZus{}iter}
+\end{Verbatim}

@@ -1,0 +1,35 @@
+\begin{Verbatim}[commandchars=\\\{\}]
+\PYG{c+c1}{\PYGZsh{} /e/src/lib/logger.py}
+
+\PYG{k+kn}{import} \PYG{n+nn}{logging}
+\PYG{k+kn}{from} \PYG{n+nn}{logging} \PYG{k+kn}{import} \PYG{n}{\PYGZus{}nameToLevel}\PYG{p}{,} \PYG{n}{\PYGZus{}levelToName}
+\PYG{k+kn}{from} \PYG{n+nn}{e.src.core.\PYGZus{}typing} \PYG{k+kn}{import} \PYG{p}{(}
+    \PYG{n}{DictParametrosLike}\PYG{p}{,}
+\PYG{p}{)}
+
+\PYG{n}{\PYGZus{}\PYGZus{}all\PYGZus{}\PYGZus{}} \PYG{o}{=} \PYG{p}{[}
+    \PYG{l+s+s1}{\PYGZsq{}dict\PYGZus{}log\PYGZus{}level\PYGZsq{}}\PYG{p}{,}
+    \PYG{l+s+s1}{\PYGZsq{}dict\PYGZus{}level\PYGZus{}log\PYGZsq{}}\PYG{p}{,}
+    \PYG{l+s+s1}{\PYGZsq{}define\PYGZus{}logger\PYGZsq{}}
+\PYG{p}{]}
+
+\PYG{n}{dict\PYGZus{}log\PYGZus{}level}\PYG{p}{:} \PYG{n}{DictParametrosLike} \PYG{o}{=} \PYG{n}{\PYGZus{}nameToLevel}
+\PYG{n}{dict\PYGZus{}level\PYGZus{}log}\PYG{p}{:} \PYG{n}{DictParametrosLike} \PYG{o}{=} \PYG{n}{\PYGZus{}levelToName}
+
+\PYG{k}{def} \PYG{n+nf}{define\PYGZus{}logger}\PYG{p}{(}\PYG{n}{logger\PYGZus{}name}\PYG{p}{:} \PYG{n+nb}{str}\PYG{p}{,} \PYG{n}{logger\PYGZus{}level}\PYG{p}{:} \PYG{n+nb}{str} \PYG{o}{=} \PYG{l+s+s1}{\PYGZsq{}DEBUG\PYGZsq{}}\PYG{p}{):}
+
+    \PYG{c+c1}{\PYGZsh{} Configurar logger.}
+    \PYG{n}{logger} \PYG{o}{=} \PYG{n}{logging}\PYG{o}{.}\PYG{n}{getLogger}\PYG{p}{(}\PYG{n}{logger\PYGZus{}name}\PYG{p}{)}
+    \PYG{n}{logger}\PYG{o}{.}\PYG{n}{setLevel}\PYG{p}{(}\PYG{n}{dict\PYGZus{}log\PYGZus{}level}\PYG{p}{[}\PYG{n}{logger\PYGZus{}level}\PYG{p}{])}
+
+    \PYG{n}{console\PYGZus{}handler} \PYG{o}{=} \PYG{n}{logging}\PYG{o}{.}\PYG{n}{StreamHandler}\PYG{p}{()}
+
+    \PYG{c+c1}{\PYGZsh{} Añadir un formato básico para los mensajes de log.}
+    \PYG{n}{formatter} \PYG{o}{=} \PYG{n}{logging}\PYG{o}{.}\PYG{n}{Formatter}\PYG{p}{(}\PYG{l+s+s1}{\PYGZsq{}}\PYG{l+s+si}{\PYGZpc{}(name)s}\PYG{l+s+s1}{ \PYGZhy{} }\PYG{l+s+si}{\PYGZpc{}(levelname)s}\PYG{l+s+s1}{ \PYGZhy{} }\PYG{l+s+si}{\PYGZpc{}(message)s}\PYG{l+s+s1}{\PYGZsq{}}\PYG{p}{)}
+    \PYG{n}{console\PYGZus{}handler}\PYG{o}{.}\PYG{n}{setFormatter}\PYG{p}{(}\PYG{n}{formatter}\PYG{p}{)}
+
+    \PYG{c+c1}{\PYGZsh{} Añadir el handler al logger.}
+    \PYG{n}{logger}\PYG{o}{.}\PYG{n}{addHandler}\PYG{p}{(}\PYG{n}{console\PYGZus{}handler}\PYG{p}{)}
+
+    \PYG{k}{return} \PYG{n}{logger}
+\end{Verbatim}

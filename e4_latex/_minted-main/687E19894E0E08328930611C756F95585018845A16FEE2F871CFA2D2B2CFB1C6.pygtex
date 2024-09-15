@@ -1,0 +1,63 @@
+\begin{Verbatim}[commandchars=\\\{\}]
+\PYG{c+c1}{\PYGZsh{} /e/src/core/\PYGZus{}abstractas.py}
+
+\PYG{k+kn}{from} \PYG{n+nn}{abc} \PYG{k+kn}{import} \PYG{n}{ABC}\PYG{p}{,} \PYG{n}{abstractmethod}
+\PYG{k+kn}{from} \PYG{n+nn}{.\PYGZus{}typing} \PYG{k+kn}{import} \PYG{p}{(}
+    \PYG{n}{ListaStringsLike}\PYG{p}{,}
+    \PYG{n}{DictParametrosLike}
+\PYG{p}{)}
+
+
+\PYG{k}{class} \PYG{n+nc}{Parametros}\PYG{p}{(}\PYG{n}{ABC}\PYG{p}{):}
+
+    \PYG{l+s+sd}{\PYGZdq{}\PYGZdq{}\PYGZdq{}}
+\PYG{l+s+sd}{    \PYGZsh{} Explicacion}
+\PYG{l+s+sd}{    Esta clase pretende facilitar el uso de guardado de parametros.}
+
+\PYG{l+s+sd}{    \PYGZsh{}\PYGZsh{} Example}
+\PYG{l+s+sd}{    \PYGZgt{}\PYGZgt{}\PYGZgt{} class SDEModelParameters(Parameters):}
+\PYG{l+s+sd}{    \PYGZgt{}\PYGZgt{}\PYGZgt{}     mu = 2}
+\PYG{l+s+sd}{    \PYGZgt{}\PYGZgt{}\PYGZgt{}     sigma = 1}
+\PYG{l+s+sd}{    \PYGZgt{}\PYGZgt{}\PYGZgt{}     X0 = 1}
+\PYG{l+s+sd}{    \PYGZgt{}\PYGZgt{}\PYGZgt{}}
+\PYG{l+s+sd}{    \PYGZgt{}\PYGZgt{}\PYGZgt{} params = SDEModelParameters()}
+\PYG{l+s+sd}{    \PYGZgt{}\PYGZgt{}\PYGZgt{} print(params)  \PYGZsh{} Salida esperada: \PYGZdq{}Parameters: SDEModelParameters\PYGZdq{}}
+\PYG{l+s+sd}{    \PYGZgt{}\PYGZgt{}\PYGZgt{} print(params.nombre) \PYGZsh{} Salida esperada: \PYGZdq{}SDEModelParameters\PYGZdq{}}
+\PYG{l+s+sd}{    \PYGZgt{}\PYGZgt{}\PYGZgt{} print(params.parametros\PYGZus{}de\PYGZus{}la\PYGZus{}clase())  \PYGZsh{} \PYGZob{}\PYGZsq{}mu\PYGZsq{}: 2, \PYGZsq{}sigma\PYGZsq{}: 1, \PYGZsq{}X0\PYGZsq{}: 1\PYGZcb{}}
+\PYG{l+s+sd}{    \PYGZdq{}\PYGZdq{}\PYGZdq{}}
+
+    \PYG{k}{def} \PYG{n+nf+fm}{\PYGZus{}\PYGZus{}init\PYGZus{}\PYGZus{}}\PYG{p}{(}\PYG{n+nb+bp}{self}\PYG{p}{,} \PYG{o}{**}\PYG{n}{kwargs}\PYG{p}{):}
+        \PYG{k}{for} \PYG{n}{key}\PYG{p}{,} \PYG{n}{value} \PYG{o+ow}{in} \PYG{n}{kwargs}\PYG{o}{.}\PYG{n}{items}\PYG{p}{():}
+            \PYG{n+nb}{setattr}\PYG{p}{(}\PYG{n+nb+bp}{self}\PYG{p}{,} \PYG{n}{key}\PYG{p}{,} \PYG{n}{value}\PYG{p}{)}
+
+    \PYG{k}{def} \PYG{n+nf+fm}{\PYGZus{}\PYGZus{}repr\PYGZus{}\PYGZus{}}\PYG{p}{(}\PYG{n+nb+bp}{self}\PYG{p}{)} \PYG{o}{\PYGZhy{}\PYGZgt{}} \PYG{n+nb}{str}\PYG{p}{:}
+        \PYG{n}{base\PYGZus{}class\PYGZus{}name} \PYG{o}{=} \PYG{n+nb+bp}{self}\PYG{o}{.}\PYG{n+nv+vm}{\PYGZus{}\PYGZus{}class\PYGZus{}\PYGZus{}}\PYG{o}{.}\PYG{n+nv+vm}{\PYGZus{}\PYGZus{}bases\PYGZus{}\PYGZus{}}\PYG{p}{[}\PYG{l+m+mi}{0}\PYG{p}{]}\PYG{o}{.}\PYG{n+nv+vm}{\PYGZus{}\PYGZus{}name\PYGZus{}\PYGZus{}}
+        \PYG{k}{return} \PYG{l+s+sa}{f}\PYG{l+s+s2}{\PYGZdq{}}\PYG{l+s+si}{\PYGZob{}}\PYG{n}{base\PYGZus{}class\PYGZus{}name}\PYG{l+s+si}{\PYGZcb{}}\PYG{l+s+s2}{: }\PYG{l+s+si}{\PYGZob{}}\PYG{n+nb+bp}{self}\PYG{o}{.}\PYG{n+nv+vm}{\PYGZus{}\PYGZus{}class\PYGZus{}\PYGZus{}}\PYG{o}{.}\PYG{n+nv+vm}{\PYGZus{}\PYGZus{}name\PYGZus{}\PYGZus{}}\PYG{l+s+si}{\PYGZcb{}}\PYG{l+s+s2}{\PYGZdq{}}
+
+    \PYG{n+nd}{@property}
+    \PYG{k}{def} \PYG{n+nf}{nombre}\PYG{p}{(}\PYG{n+nb+bp}{self}\PYG{p}{)} \PYG{o}{\PYGZhy{}\PYGZgt{}} \PYG{n+nb}{str}\PYG{p}{:}
+        \PYG{k}{return} \PYG{n+nb+bp}{self}\PYG{o}{.}\PYG{n+nf+fm}{\PYGZus{}\PYGZus{}repr\PYGZus{}\PYGZus{}}\PYG{p}{()}\PYG{o}{.}\PYG{n}{split}\PYG{p}{(}\PYG{l+s+s1}{\PYGZsq{}:\PYGZsq{}}\PYG{p}{)[}\PYG{l+m+mi}{1}\PYG{p}{]}\PYG{o}{.}\PYG{n}{strip}\PYG{p}{()}
+
+    \PYG{n+nd}{@classmethod}
+    \PYG{k}{def} \PYG{n+nf}{lista\PYGZus{}de\PYGZus{}funciones\PYGZus{}prop\PYGZus{}de\PYGZus{}una\PYGZus{}clase}\PYG{p}{(}\PYG{n+nb+bp}{cls}\PYG{p}{)} \PYG{o}{\PYGZhy{}\PYGZgt{}} \PYG{n}{ListaStringsLike}\PYG{p}{:}
+        \PYG{k}{return} \PYG{p}{[}\PYG{n}{p} \PYG{k}{for} \PYG{n}{p} \PYG{o+ow}{in} \PYG{n+nb}{dir}\PYG{p}{(}\PYG{n+nb+bp}{cls}\PYG{p}{)} \PYG{k}{if} \PYG{n+nb}{isinstance}\PYG{p}{(}\PYG{n+nb}{getattr}\PYG{p}{(}\PYG{n+nb+bp}{cls}\PYG{p}{,} \PYG{n}{p}\PYG{p}{),} \PYG{n+nb}{property}\PYG{p}{)]}
+
+    \PYG{n+nd}{@classmethod}
+    \PYG{k}{def} \PYG{n+nf}{parametros\PYGZus{}de\PYGZus{}la\PYGZus{}clase}\PYG{p}{(}\PYG{n+nb+bp}{cls}\PYG{p}{)} \PYG{o}{\PYGZhy{}\PYGZgt{}} \PYG{n}{DictParametrosLike}\PYG{p}{:}
+        \PYG{c+c1}{\PYGZsh{} Obtener las propiedades de la clase}
+        \PYG{n}{property\PYGZus{}names} \PYG{o}{=} \PYG{n+nb+bp}{cls}\PYG{o}{.}\PYG{n}{lista\PYGZus{}de\PYGZus{}funciones\PYGZus{}prop\PYGZus{}de\PYGZus{}una\PYGZus{}clase}\PYG{p}{()}
+
+        \PYG{c+c1}{\PYGZsh{} Obtener todos los atributos que no sean métodos ni propiedades internas}
+        \PYG{n}{internal\PYGZus{}variables\PYGZus{}dict} \PYG{o}{=} \PYG{p}{\PYGZob{}}\PYG{n}{k}\PYG{p}{:} \PYG{n}{v} \PYG{k}{for} \PYG{n}{k}\PYG{p}{,} \PYG{n}{v} \PYG{o+ow}{in} \PYG{n+nb}{vars}\PYG{p}{(}\PYG{n+nb+bp}{cls}\PYG{p}{)}\PYG{o}{.}\PYG{n}{items}\PYG{p}{()} \PYG{k}{if} \PYG{o+ow}{not} \PYG{n}{k}\PYG{o}{.}\PYG{n}{startswith}\PYG{p}{(}\PYG{l+s+s2}{\PYGZdq{}\PYGZus{}\PYGZus{}\PYGZdq{}}\PYG{p}{)\PYGZcb{}}
+
+        \PYG{c+c1}{\PYGZsh{} Excluir las propiedades y los atributos internos que comienzan con \PYGZdq{}\PYGZus{}\PYGZdq{}}
+        \PYG{n}{store\PYGZus{}keys} \PYG{o}{=} \PYG{p}{[]} \PYG{o}{+} \PYG{n}{property\PYGZus{}names}
+        \PYG{k}{for} \PYG{n}{key} \PYG{o+ow}{in} \PYG{n}{internal\PYGZus{}variables\PYGZus{}dict}\PYG{o}{.}\PYG{n}{keys}\PYG{p}{():}
+            \PYG{k}{if} \PYG{n}{key}\PYG{o}{.}\PYG{n}{startswith}\PYG{p}{(}\PYG{l+s+s1}{\PYGZsq{}\PYGZus{}\PYGZsq{}}\PYG{p}{):}
+                \PYG{n}{store\PYGZus{}keys}\PYG{o}{.}\PYG{n}{append}\PYG{p}{(}\PYG{n}{key}\PYG{p}{)}
+        \PYG{k}{for} \PYG{n}{key} \PYG{o+ow}{in} \PYG{n}{store\PYGZus{}keys}\PYG{p}{:}
+            \PYG{k}{if} \PYG{n}{key} \PYG{o+ow}{in} \PYG{n}{internal\PYGZus{}variables\PYGZus{}dict}\PYG{p}{:}
+                \PYG{k}{del} \PYG{n}{internal\PYGZus{}variables\PYGZus{}dict}\PYG{p}{[}\PYG{n}{key}\PYG{p}{]}
+
+        \PYG{k}{return} \PYG{n}{internal\PYGZus{}variables\PYGZus{}dict}
+\end{Verbatim}

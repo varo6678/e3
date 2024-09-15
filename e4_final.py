@@ -1,0 +1,175 @@
+# .
+
+# Imports | external.
+from pathlib import Path
+
+# Imports | internal.
+from e.src.lib.logger import (
+    define_logger,
+    dict_log_level,
+    dict_level_log
+)
+from e.src.lib.placeholders import (
+    ParametrosFisicos,
+    ParametrosGeometricos,
+    ParametrosComputacionales,
+    NpuntosDireccion
+)
+from e import np, plt, pd
+from e.src.lib.constants import Rutas
+from e.src.lib.parsers import define_parser
+from e.src.core._typing import (
+    Callable
+)
+
+informer = define_logger(logger_name='mna', logger_level='INFO')
+
+def resolver_onda_hiperbolica(Nx: int, Nt: int, L: float, T: float, tolerancia: float = 1e-6):
+    # Parámetros de discretización.
+    dx = L / Nx
+    dt = T / Nt
+    x = np.linspace(0, L, Nx + 1)
+    t = np.linspace(0, T, Nt + 1)
+    sigma = (dt / dx) ** 2
+
+    # Inicializar la matriz de soluciones.
+    u = np.zeros((Nt + 1, Nx + 1))
+
+    # Condición inicial u(x, 0) = x(1 - x).
+    u[0, :] = x * (1 - x)
+
+    # Condición inicial de la derivada temporal es cero.
+    # Calculamos u[1, :] usando la aproximación:
+    for i in range(1, Nx):
+        u[1, i] = u[0, i] + 0.5 * sigma * (
+            u[0, i+1] - 2*u[0, i] + u[0, i-1] + dx**2 * (1 - x[i]**2)
+        )
+
+    # Aplicar condiciones de frontera.
+    u[:, 0] = 0  # u(0, t) = 0
+    u[:, Nx] = 0  # Suponiendo u(L, t) = 0
+
+    # Bucle de tiempo con criterio de convergencia.
+    for n in range(1, Nt):
+        u_old = u[n, :].copy()  # Copiar la solución anterior.
+
+        # Actualizar solución en el paso n+1
+        for i in range(1, Nx):
+            u[n+1, i] = (
+                2*u[n, i] - u[n-1, i] + sigma * (
+                    u[n, i+1] - 2*u[n, i] + u[n, i-1] + dx**2 * (1 - x[i]**2)
+                )
+            )
+
+        # Aplicar condiciones de frontera.
+        u[n+1, 0] = 0
+        u[n+1, Nx] = 0
+
+        # Verificar criterio de convergencia.
+        max_delta = np.max(np.abs(u[n+1, :] - u_old))
+        if max_delta < tolerancia:
+            informer.info(f'Convergencia alcanzada en el paso temporal n={n} con delta máximo={max_delta:.2e}')
+            break
+
+    return x, t[:n+2], u[:n+2, :]  # Devolver solo hasta el paso convergente
+
+
+if __name__ == '__main__':
+    
+    # Definir los parámetros físicos, geométricos y computacionales.
+    parser = define_parser()
+    argumentos_parseados = parser.parse_args()
+    informer.setLevel(argumentos_parseados.verbosity)
+    
+    # Ruta de Outputs:
+    TEMATICA: str = 'ecuacion_ondas'
+    FORMATO_GRAFICAS: str = '.png'
+    OUTPUTS: str = 'OUTPUTS'
+    RUTA_OUTPUTS: str = f"{Rutas.RUTA_PAQUETE}/../{OUTPUTS}"
+    RUTA_OUTPUTS_LATEX: str = f"{Rutas.RUTA_PAQUETE}/../e4_latex/figuras"
+    Path(RUTA_OUTPUTS).mkdir(parents=True, exist_ok=True)
+    
+    gparams = ParametrosGeometricos(T=1.0, L=1.0, Nx=50, Nt=100, X_R=0.3, T_R=0.1)
+    cparams = ParametrosComputacionales(cfl=0.15)
+    
+    # 1. Soluciones analíticas en los puntos P, Q y R.
+    u_analitico_P = 0.2 * (1 - 0.2)  # u(0.2, 0) = 0.16
+    u_analitico_Q = 0.4 * (1 - 0.4)  # u(0.4, 0) = 0.24
+    u_analitico_R = 0.2  # Resultado ya obtenido para R(0.3, 0.1)
+    
+    informer.info(f"Solución analítica en P(0.2, 0): {u_analitico_P}")
+    informer.info(f"Solución analítica en Q(0.4, 0): {u_analitico_Q}")
+    informer.info(f"Solución analítica en R(0.3, 0.1): {u_analitico_R}")
+    
+    # 2. Solución numérica utilizando el esquema de diferencias finitas.
+    tolerancia = 1e-6
+    x, t, u = resolver_onda_hiperbolica(gparams.Nx, gparams.Nt, gparams.L, gparams.T, tolerancia=tolerancia)
+    
+    # 3. Obtener los valores numéricos en los puntos P(0.2, 0), Q(0.4, 0), y R(0.3, 0.1).
+    x_idx_P = np.argmin(np.abs(x - 0.2))
+    x_idx_Q = np.argmin(np.abs(x - 0.4))
+    x_idx_R = np.argmin(np.abs(x - gparams.X_R))
+    
+    t_idx_0 = 0  # t = 0 para los puntos P y Q.
+    t_idx_R = np.argmin(np.abs(t - gparams.T_R))  # t = 0.1 para el punto R.
+    
+    u_numerico_P = u[t_idx_0, x_idx_P]  # Solución numérica en P(0.2, 0).
+    u_numerico_Q = u[t_idx_0, x_idx_Q]  # Solución numérica en Q(0.4, 0).
+    u_numerico_R = u[t_idx_R, x_idx_R]  # Solución numérica en R(0.3, 0.1).
+    
+    informer.info(f"Solución numérica en P(0.2, 0): {u_numerico_P}")
+    informer.info(f"Solución numérica en Q(0.4, 0): {u_numerico_Q}")
+    informer.info(f"Solución numérica en R(0.3, 0.1): {u_numerico_R}")
+    
+    # 4. Comparación cuantitativa en los puntos P, Q y R.
+    error_absoluto_P = np.abs(u_numerico_P - u_analitico_P)
+    error_relativo_P = (error_absoluto_P / np.abs(u_analitico_P)) * 100
+    
+    error_absoluto_Q = np.abs(u_numerico_Q - u_analitico_Q)
+    error_relativo_Q = (error_absoluto_Q / np.abs(u_analitico_Q)) * 100
+    
+    error_absoluto_R = np.abs(u_numerico_R - u_analitico_R)
+    error_relativo_R = (error_absoluto_R / np.abs(u_analitico_R)) * 100
+    
+    informer.info(f"Error absoluto en P(0.2, 0): {error_absoluto_P}, Error relativo: {error_relativo_P:.2f}%")
+    informer.info(f"Error absoluto en Q(0.4, 0): {error_absoluto_Q}, Error relativo: {error_relativo_Q:.2f}%")
+    informer.info(f"Error absoluto en R(0.3, 0.1): {error_absoluto_R}, Error relativo: {error_relativo_R:.2f}%")
+    
+    # 5. Volcado de resultados en una tabla de pandas.
+    tabla_errores = pd.DataFrame(
+        data=[
+            ['P(0.2, 0)', u_analitico_P, u_numerico_P, error_absoluto_P, error_relativo_P],
+            ['Q(0.4, 0)', u_analitico_Q, u_numerico_Q, error_absoluto_Q, error_relativo_Q],
+            ['R(0.3, 0.1)', u_analitico_R, u_numerico_R, error_absoluto_R, error_relativo_R]
+        ],
+        columns=['Punto', 'Valor Analítico', 'Valor Numérico', 'Error Absoluto', 'Error Relativo (%)']
+    )
+    
+    # Guardar la tabla en un archivo CSV.
+    tabla_errores.to_csv(f"{RUTA_OUTPUTS}/tabla_errores.csv", index=False)
+    informer.info(f"Resultados volcados en {RUTA_OUTPUTS}/tabla_errores.csv")
+
+    # 6. Función para convertir a formato LaTeX.
+    def convertir_tabla_a_latex(df: pd.DataFrame, ruta_salida: str):
+        latex_code = df.to_latex(index=False)
+        with open(ruta_salida, 'w') as f:
+            f.write(latex_code)
+        informer.info(f"Tabla en formato LaTeX guardada en {ruta_salida}")
+    
+    # Convertir la tabla a LaTeX.
+    convertir_tabla_a_latex(tabla_errores, f"{RUTA_OUTPUTS}/{TEMATICA}_tabla_errores.tex")
+    
+    # 7. Visualización de la solución numérica.
+    plt.figure(figsize=(8, 6))
+    X, T_grid = np.meshgrid(x, t)
+    plt.contourf(X, T_grid, u, levels=50, cmap='viridis')
+    plt.colorbar(label='u(x, t)')
+    plt.xlabel('x')
+    plt.ylabel('t')
+    plt.title('Solución de la ecuación diferencial hiperbólica')
+    plt.savefig(f"{RUTA_OUTPUTS}/{TEMATICA}{FORMATO_GRAFICAS}")
+    plt.savefig(f"{RUTA_OUTPUTS_LATEX}/{TEMATICA}{FORMATO_GRAFICAS}")
+
+
+
+

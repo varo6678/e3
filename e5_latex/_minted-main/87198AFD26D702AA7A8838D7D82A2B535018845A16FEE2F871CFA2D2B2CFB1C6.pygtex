@@ -1,0 +1,7 @@
+\begin{Verbatim}[commandchars=\\\{\}]
+\PYG{k}{def} \PYG{n+nf}{apply\PYGZus{}boundary\PYGZus{}conditions}\PYG{p}{(}\PYG{n}{K}\PYG{p}{,} \PYG{n}{f}\PYG{p}{):}
+    \PYG{n}{K}\PYG{p}{[}\PYG{l+m+mi}{0}\PYG{p}{,} \PYG{p}{:]} \PYG{o}{=} \PYG{l+m+mi}{0}
+    \PYG{n}{K}\PYG{p}{[}\PYG{l+m+mi}{0}\PYG{p}{,} \PYG{l+m+mi}{0}\PYG{p}{]} \PYG{o}{=} \PYG{l+m+mi}{1}
+    \PYG{n}{f}\PYG{p}{[}\PYG{l+m+mi}{0}\PYG{p}{]} \PYG{o}{=} \PYG{l+m+mi}{0}
+    \PYG{k}{return} \PYG{n}{K}\PYG{p}{,} \PYG{n}{f}
+\end{Verbatim}

@@ -1,0 +1,174 @@
+\begin{Verbatim}[commandchars=\\\{\}]
+
+\PYG{c+c1}{\PYGZsh{} .}
+
+\PYG{c+c1}{\PYGZsh{} Imports | external.}
+\PYG{k+kn}{from} \PYG{n+nn}{pathlib} \PYG{k+kn}{import} \PYG{n}{Path}
+
+\PYG{c+c1}{\PYGZsh{} Imports | internal.}
+\PYG{k+kn}{from} \PYG{n+nn}{e.src.lib.logger} \PYG{k+kn}{import} \PYG{p}{(}
+    \PYG{n}{define\PYGZus{}logger}\PYG{p}{,}
+    \PYG{n}{dict\PYGZus{}log\PYGZus{}level}\PYG{p}{,}
+    \PYG{n}{dict\PYGZus{}level\PYGZus{}log}
+\PYG{p}{)}
+\PYG{k+kn}{from} \PYG{n+nn}{e.src.lib.placeholders} \PYG{k+kn}{import} \PYG{p}{(}
+    \PYG{n}{ParametrosFisicos}\PYG{p}{,}
+    \PYG{n}{ParametrosGeometricos}\PYG{p}{,}
+    \PYG{n}{ParametrosComputacionales}\PYG{p}{,}
+    \PYG{n}{NpuntosDireccion}
+\PYG{p}{)}
+\PYG{k+kn}{from} \PYG{n+nn}{e} \PYG{k+kn}{import} \PYG{n}{np}\PYG{p}{,} \PYG{n}{plt}\PYG{p}{,} \PYG{n}{pd}
+\PYG{k+kn}{from} \PYG{n+nn}{e.src.lib.constants} \PYG{k+kn}{import} \PYG{n}{Rutas}
+\PYG{k+kn}{from} \PYG{n+nn}{e.src.lib.parsers} \PYG{k+kn}{import} \PYG{n}{define\PYGZus{}parser}
+\PYG{k+kn}{from} \PYG{n+nn}{e.src.core.\PYGZus{}typing} \PYG{k+kn}{import} \PYG{p}{(}
+    \PYG{n}{Callable}
+\PYG{p}{)}
+
+\PYG{n}{informer} \PYG{o}{=} \PYG{n}{define\PYGZus{}logger}\PYG{p}{(}\PYG{n}{logger\PYGZus{}name}\PYG{o}{=}\PYG{l+s+s1}{\PYGZsq{}mna\PYGZsq{}}\PYG{p}{,} \PYG{n}{logger\PYGZus{}level}\PYG{o}{=}\PYG{l+s+s1}{\PYGZsq{}INFO\PYGZsq{}}\PYG{p}{)}
+
+\PYG{k}{def} \PYG{n+nf}{resolver\PYGZus{}onda\PYGZus{}hiperbolica}\PYG{p}{(}\PYG{n}{Nx}\PYG{p}{:} \PYG{n+nb}{int}\PYG{p}{,} \PYG{n}{Nt}\PYG{p}{:} \PYG{n+nb}{int}\PYG{p}{,} \PYG{n}{L}\PYG{p}{:} \PYG{n+nb}{float}\PYG{p}{,} \PYG{n}{T}\PYG{p}{:} \PYG{n+nb}{float}\PYG{p}{,} \PYG{n}{tolerancia}\PYG{p}{:} \PYG{n+nb}{float} \PYG{o}{=} \PYG{l+m+mf}{1e\PYGZhy{}6}\PYG{p}{):}
+    \PYG{c+c1}{\PYGZsh{} Parámetros de discretización.}
+    \PYG{n}{dx} \PYG{o}{=} \PYG{n}{L} \PYG{o}{/} \PYG{n}{Nx}
+    \PYG{n}{dt} \PYG{o}{=} \PYG{n}{T} \PYG{o}{/} \PYG{n}{Nt}
+    \PYG{n}{x} \PYG{o}{=} \PYG{n}{np}\PYG{o}{.}\PYG{n}{linspace}\PYG{p}{(}\PYG{l+m+mi}{0}\PYG{p}{,} \PYG{n}{L}\PYG{p}{,} \PYG{n}{Nx} \PYG{o}{+} \PYG{l+m+mi}{1}\PYG{p}{)}
+    \PYG{n}{t} \PYG{o}{=} \PYG{n}{np}\PYG{o}{.}\PYG{n}{linspace}\PYG{p}{(}\PYG{l+m+mi}{0}\PYG{p}{,} \PYG{n}{T}\PYG{p}{,} \PYG{n}{Nt} \PYG{o}{+} \PYG{l+m+mi}{1}\PYG{p}{)}
+    \PYG{n}{sigma} \PYG{o}{=} \PYG{p}{(}\PYG{n}{dt} \PYG{o}{/} \PYG{n}{dx}\PYG{p}{)} \PYG{o}{**} \PYG{l+m+mi}{2}
+
+    \PYG{c+c1}{\PYGZsh{} Inicializar la matriz de soluciones.}
+    \PYG{n}{u} \PYG{o}{=} \PYG{n}{np}\PYG{o}{.}\PYG{n}{zeros}\PYG{p}{((}\PYG{n}{Nt} \PYG{o}{+} \PYG{l+m+mi}{1}\PYG{p}{,} \PYG{n}{Nx} \PYG{o}{+} \PYG{l+m+mi}{1}\PYG{p}{))}
+
+    \PYG{c+c1}{\PYGZsh{} Condición inicial u(x, 0) = x(1 \PYGZhy{} x).}
+    \PYG{n}{u}\PYG{p}{[}\PYG{l+m+mi}{0}\PYG{p}{,} \PYG{p}{:]} \PYG{o}{=} \PYG{n}{x} \PYG{o}{*} \PYG{p}{(}\PYG{l+m+mi}{1} \PYG{o}{\PYGZhy{}} \PYG{n}{x}\PYG{p}{)}
+
+    \PYG{c+c1}{\PYGZsh{} Condición inicial de la derivada temporal es cero.}
+    \PYG{c+c1}{\PYGZsh{} Calculamos u[1, :] usando la aproximación:}
+    \PYG{k}{for} \PYG{n}{i} \PYG{o+ow}{in} \PYG{n+nb}{range}\PYG{p}{(}\PYG{l+m+mi}{1}\PYG{p}{,} \PYG{n}{Nx}\PYG{p}{):}
+        \PYG{n}{u}\PYG{p}{[}\PYG{l+m+mi}{1}\PYG{p}{,} \PYG{n}{i}\PYG{p}{]} \PYG{o}{=} \PYG{n}{u}\PYG{p}{[}\PYG{l+m+mi}{0}\PYG{p}{,} \PYG{n}{i}\PYG{p}{]} \PYG{o}{+} \PYG{l+m+mf}{0.5} \PYG{o}{*} \PYG{n}{sigma} \PYG{o}{*} \PYG{p}{(}
+            \PYG{n}{u}\PYG{p}{[}\PYG{l+m+mi}{0}\PYG{p}{,} \PYG{n}{i}\PYG{o}{+}\PYG{l+m+mi}{1}\PYG{p}{]} \PYG{o}{\PYGZhy{}} \PYG{l+m+mi}{2}\PYG{o}{*}\PYG{n}{u}\PYG{p}{[}\PYG{l+m+mi}{0}\PYG{p}{,} \PYG{n}{i}\PYG{p}{]} \PYG{o}{+} \PYG{n}{u}\PYG{p}{[}\PYG{l+m+mi}{0}\PYG{p}{,} \PYG{n}{i}\PYG{o}{\PYGZhy{}}\PYG{l+m+mi}{1}\PYG{p}{]} \PYG{o}{+} \PYG{n}{dx}\PYG{o}{**}\PYG{l+m+mi}{2} \PYG{o}{*} \PYG{p}{(}\PYG{l+m+mi}{1} \PYG{o}{\PYGZhy{}} \PYG{n}{x}\PYG{p}{[}\PYG{n}{i}\PYG{p}{]}\PYG{o}{**}\PYG{l+m+mi}{2}\PYG{p}{)}
+        \PYG{p}{)}
+
+    \PYG{c+c1}{\PYGZsh{} Aplicar condiciones de frontera.}
+    \PYG{n}{u}\PYG{p}{[:,} \PYG{l+m+mi}{0}\PYG{p}{]} \PYG{o}{=} \PYG{l+m+mi}{0}  \PYG{c+c1}{\PYGZsh{} u(0, t) = 0}
+    \PYG{n}{u}\PYG{p}{[:,} \PYG{n}{Nx}\PYG{p}{]} \PYG{o}{=} \PYG{l+m+mi}{0}  \PYG{c+c1}{\PYGZsh{} Suponiendo u(L, t) = 0}
+
+    \PYG{c+c1}{\PYGZsh{} Bucle de tiempo con criterio de convergencia.}
+    \PYG{k}{for} \PYG{n}{n} \PYG{o+ow}{in} \PYG{n+nb}{range}\PYG{p}{(}\PYG{l+m+mi}{1}\PYG{p}{,} \PYG{n}{Nt}\PYG{p}{):}
+        \PYG{n}{u\PYGZus{}old} \PYG{o}{=} \PYG{n}{u}\PYG{p}{[}\PYG{n}{n}\PYG{p}{,} \PYG{p}{:]}\PYG{o}{.}\PYG{n}{copy}\PYG{p}{()}  \PYG{c+c1}{\PYGZsh{} Copiar la solución anterior.}
+
+        \PYG{c+c1}{\PYGZsh{} Actualizar solución en el paso n+1}
+        \PYG{k}{for} \PYG{n}{i} \PYG{o+ow}{in} \PYG{n+nb}{range}\PYG{p}{(}\PYG{l+m+mi}{1}\PYG{p}{,} \PYG{n}{Nx}\PYG{p}{):}
+            \PYG{n}{u}\PYG{p}{[}\PYG{n}{n}\PYG{o}{+}\PYG{l+m+mi}{1}\PYG{p}{,} \PYG{n}{i}\PYG{p}{]} \PYG{o}{=} \PYG{p}{(}
+                \PYG{l+m+mi}{2}\PYG{o}{*}\PYG{n}{u}\PYG{p}{[}\PYG{n}{n}\PYG{p}{,} \PYG{n}{i}\PYG{p}{]} \PYG{o}{\PYGZhy{}} \PYG{n}{u}\PYG{p}{[}\PYG{n}{n}\PYG{o}{\PYGZhy{}}\PYG{l+m+mi}{1}\PYG{p}{,} \PYG{n}{i}\PYG{p}{]} \PYG{o}{+} \PYG{n}{sigma} \PYG{o}{*} \PYG{p}{(}
+                    \PYG{n}{u}\PYG{p}{[}\PYG{n}{n}\PYG{p}{,} \PYG{n}{i}\PYG{o}{+}\PYG{l+m+mi}{1}\PYG{p}{]} \PYG{o}{\PYGZhy{}} \PYG{l+m+mi}{2}\PYG{o}{*}\PYG{n}{u}\PYG{p}{[}\PYG{n}{n}\PYG{p}{,} \PYG{n}{i}\PYG{p}{]} \PYG{o}{+} \PYG{n}{u}\PYG{p}{[}\PYG{n}{n}\PYG{p}{,} \PYG{n}{i}\PYG{o}{\PYGZhy{}}\PYG{l+m+mi}{1}\PYG{p}{]} \PYG{o}{+} \PYG{n}{dx}\PYG{o}{**}\PYG{l+m+mi}{2} \PYG{o}{*} \PYG{p}{(}\PYG{l+m+mi}{1} \PYG{o}{\PYGZhy{}} \PYG{n}{x}\PYG{p}{[}\PYG{n}{i}\PYG{p}{]}\PYG{o}{**}\PYG{l+m+mi}{2}\PYG{p}{)}
+                \PYG{p}{)}
+            \PYG{p}{)}
+
+        \PYG{c+c1}{\PYGZsh{} Aplicar condiciones de frontera.}
+        \PYG{n}{u}\PYG{p}{[}\PYG{n}{n}\PYG{o}{+}\PYG{l+m+mi}{1}\PYG{p}{,} \PYG{l+m+mi}{0}\PYG{p}{]} \PYG{o}{=} \PYG{l+m+mi}{0}
+        \PYG{n}{u}\PYG{p}{[}\PYG{n}{n}\PYG{o}{+}\PYG{l+m+mi}{1}\PYG{p}{,} \PYG{n}{Nx}\PYG{p}{]} \PYG{o}{=} \PYG{l+m+mi}{0}
+
+        \PYG{c+c1}{\PYGZsh{} Verificar criterio de convergencia.}
+        \PYG{n}{max\PYGZus{}delta} \PYG{o}{=} \PYG{n}{np}\PYG{o}{.}\PYG{n}{max}\PYG{p}{(}\PYG{n}{np}\PYG{o}{.}\PYG{n}{abs}\PYG{p}{(}\PYG{n}{u}\PYG{p}{[}\PYG{n}{n}\PYG{o}{+}\PYG{l+m+mi}{1}\PYG{p}{,} \PYG{p}{:]} \PYG{o}{\PYGZhy{}} \PYG{n}{u\PYGZus{}old}\PYG{p}{))}
+        \PYG{k}{if} \PYG{n}{max\PYGZus{}delta} \PYG{o}{\PYGZlt{}} \PYG{n}{tolerancia}\PYG{p}{:}
+            \PYG{n}{informer}\PYG{o}{.}\PYG{n}{info}\PYG{p}{(}\PYG{l+s+sa}{f}\PYG{l+s+s1}{\PYGZsq{}Convergencia alcanzada en el paso temporal n=}\PYG{l+s+si}{\PYGZob{}}\PYG{n}{n}\PYG{l+s+si}{\PYGZcb{}}\PYG{l+s+s1}{ con delta máximo=}\PYG{l+s+si}{\PYGZob{}}\PYG{n}{max\PYGZus{}delta}\PYG{l+s+si}{:}\PYG{l+s+s1}{.2e}\PYG{l+s+si}{\PYGZcb{}}\PYG{l+s+s1}{\PYGZsq{}}\PYG{p}{)}
+            \PYG{k}{break}
+
+    \PYG{k}{return} \PYG{n}{x}\PYG{p}{,} \PYG{n}{t}\PYG{p}{[:}\PYG{n}{n}\PYG{o}{+}\PYG{l+m+mi}{2}\PYG{p}{],} \PYG{n}{u}\PYG{p}{[:}\PYG{n}{n}\PYG{o}{+}\PYG{l+m+mi}{2}\PYG{p}{,} \PYG{p}{:]}  \PYG{c+c1}{\PYGZsh{} Devolver solo hasta el paso convergente}
+
+
+\PYG{k}{if} \PYG{n+nv+vm}{\PYGZus{}\PYGZus{}name\PYGZus{}\PYGZus{}} \PYG{o}{==} \PYG{l+s+s1}{\PYGZsq{}\PYGZus{}\PYGZus{}main\PYGZus{}\PYGZus{}\PYGZsq{}}\PYG{p}{:}
+
+    \PYG{c+c1}{\PYGZsh{} Definir los parámetros físicos, geométricos y computacionales.}
+    \PYG{n}{parser} \PYG{o}{=} \PYG{n}{define\PYGZus{}parser}\PYG{p}{()}
+    \PYG{n}{argumentos\PYGZus{}parseados} \PYG{o}{=} \PYG{n}{parser}\PYG{o}{.}\PYG{n}{parse\PYGZus{}args}\PYG{p}{()}
+    \PYG{n}{informer}\PYG{o}{.}\PYG{n}{setLevel}\PYG{p}{(}\PYG{n}{argumentos\PYGZus{}parseados}\PYG{o}{.}\PYG{n}{verbosity}\PYG{p}{)}
+
+    \PYG{c+c1}{\PYGZsh{} Ruta de Outputs:}
+    \PYG{n}{TEMATICA}\PYG{p}{:} \PYG{n+nb}{str} \PYG{o}{=} \PYG{l+s+s1}{\PYGZsq{}ecuacion\PYGZus{}ondas\PYGZsq{}}
+    \PYG{n}{FORMATO\PYGZus{}GRAFICAS}\PYG{p}{:} \PYG{n+nb}{str} \PYG{o}{=} \PYG{l+s+s1}{\PYGZsq{}.png\PYGZsq{}}
+    \PYG{n}{OUTPUTS}\PYG{p}{:} \PYG{n+nb}{str} \PYG{o}{=} \PYG{l+s+s1}{\PYGZsq{}OUTPUTS\PYGZsq{}}
+    \PYG{n}{RUTA\PYGZus{}OUTPUTS}\PYG{p}{:} \PYG{n+nb}{str} \PYG{o}{=} \PYG{l+s+sa}{f}\PYG{l+s+s2}{\PYGZdq{}}\PYG{l+s+si}{\PYGZob{}}\PYG{n}{Rutas}\PYG{o}{.}\PYG{n}{RUTA\PYGZus{}PAQUETE}\PYG{l+s+si}{\PYGZcb{}}\PYG{l+s+s2}{/../}\PYG{l+s+si}{\PYGZob{}}\PYG{n}{OUTPUTS}\PYG{l+s+si}{\PYGZcb{}}\PYG{l+s+s2}{\PYGZdq{}}
+    \PYG{n}{Path}\PYG{p}{(}\PYG{n}{RUTA\PYGZus{}OUTPUTS}\PYG{p}{)}\PYG{o}{.}\PYG{n}{mkdir}\PYG{p}{(}\PYG{n}{parents}\PYG{o}{=}\PYG{k+kc}{True}\PYG{p}{,} \PYG{n}{exist\PYGZus{}ok}\PYG{o}{=}\PYG{k+kc}{True}\PYG{p}{)}
+
+    \PYG{n}{gparams} \PYG{o}{=} \PYG{n}{ParametrosGeometricos}\PYG{p}{(}\PYG{n}{T}\PYG{o}{=}\PYG{l+m+mf}{1.0}\PYG{p}{,} \PYG{n}{L}\PYG{o}{=}\PYG{l+m+mf}{1.0}\PYG{p}{,} \PYG{n}{Nx}\PYG{o}{=}\PYG{l+m+mi}{50}\PYG{p}{,} \PYG{n}{Nt}\PYG{o}{=}\PYG{l+m+mi}{100}\PYG{p}{,} \PYG{n}{X\PYGZus{}R}\PYG{o}{=}\PYG{l+m+mf}{0.3}\PYG{p}{,} \PYG{n}{T\PYGZus{}R}\PYG{o}{=}\PYG{l+m+mf}{0.1}\PYG{p}{)}
+    \PYG{n}{cparams} \PYG{o}{=} \PYG{n}{ParametrosComputacionales}\PYG{p}{(}\PYG{n}{cfl}\PYG{o}{=}\PYG{l+m+mf}{0.15}\PYG{p}{)}
+
+    \PYG{c+c1}{\PYGZsh{} 1. Soluciones analíticas en los puntos P, Q y R.}
+    \PYG{n}{u\PYGZus{}analitico\PYGZus{}P} \PYG{o}{=} \PYG{l+m+mf}{0.2} \PYG{o}{*} \PYG{p}{(}\PYG{l+m+mi}{1} \PYG{o}{\PYGZhy{}} \PYG{l+m+mf}{0.2}\PYG{p}{)}  \PYG{c+c1}{\PYGZsh{} u(0.2, 0) = 0.16}
+    \PYG{n}{u\PYGZus{}analitico\PYGZus{}Q} \PYG{o}{=} \PYG{l+m+mf}{0.4} \PYG{o}{*} \PYG{p}{(}\PYG{l+m+mi}{1} \PYG{o}{\PYGZhy{}} \PYG{l+m+mf}{0.4}\PYG{p}{)}  \PYG{c+c1}{\PYGZsh{} u(0.4, 0) = 0.24}
+    \PYG{n}{u\PYGZus{}analitico\PYGZus{}R} \PYG{o}{=} \PYG{l+m+mf}{0.2}  \PYG{c+c1}{\PYGZsh{} Resultado ya obtenido para R(0.3, 0.1)}
+
+    \PYG{n}{informer}\PYG{o}{.}\PYG{n}{info}\PYG{p}{(}\PYG{l+s+sa}{f}\PYG{l+s+s2}{\PYGZdq{}Solución analítica en P(0.2, 0): }\PYG{l+s+si}{\PYGZob{}}\PYG{n}{u\PYGZus{}analitico\PYGZus{}P}\PYG{l+s+si}{\PYGZcb{}}\PYG{l+s+s2}{\PYGZdq{}}\PYG{p}{)}
+    \PYG{n}{informer}\PYG{o}{.}\PYG{n}{info}\PYG{p}{(}\PYG{l+s+sa}{f}\PYG{l+s+s2}{\PYGZdq{}Solución analítica en Q(0.4, 0): }\PYG{l+s+si}{\PYGZob{}}\PYG{n}{u\PYGZus{}analitico\PYGZus{}Q}\PYG{l+s+si}{\PYGZcb{}}\PYG{l+s+s2}{\PYGZdq{}}\PYG{p}{)}
+    \PYG{n}{informer}\PYG{o}{.}\PYG{n}{info}\PYG{p}{(}\PYG{l+s+sa}{f}\PYG{l+s+s2}{\PYGZdq{}Solución analítica en R(0.3, 0.1): }\PYG{l+s+si}{\PYGZob{}}\PYG{n}{u\PYGZus{}analitico\PYGZus{}R}\PYG{l+s+si}{\PYGZcb{}}\PYG{l+s+s2}{\PYGZdq{}}\PYG{p}{)}
+
+    \PYG{c+c1}{\PYGZsh{} 2. Solución numérica utilizando el esquema de diferencias finitas.}
+    \PYG{n}{tolerancia} \PYG{o}{=} \PYG{l+m+mf}{1e\PYGZhy{}6}
+    \PYG{n}{x}\PYG{p}{,} \PYG{n}{t}\PYG{p}{,} \PYG{n}{u} \PYG{o}{=} \PYG{n}{resolver\PYGZus{}onda\PYGZus{}hiperbolica}\PYG{p}{(}\PYG{n}{gparams}\PYG{o}{.}\PYG{n}{Nx}\PYG{p}{,} \PYG{n}{gparams}\PYG{o}{.}\PYG{n}{Nt}\PYG{p}{,} \PYG{n}{gparams}\PYG{o}{.}\PYG{n}{L}\PYG{p}{,} \PYG{n}{gparams}\PYG{o}{.}\PYG{n}{T}\PYG{p}{,} \PYG{n}{tolerancia}\PYG{o}{=}\PYG{n}{tolerancia}\PYG{p}{)}
+
+    \PYG{c+c1}{\PYGZsh{} 3. Obtener los valores numéricos en los puntos P(0.2, 0), Q(0.4, 0), y R(0.3, 0.1).}
+    \PYG{n}{x\PYGZus{}idx\PYGZus{}P} \PYG{o}{=} \PYG{n}{np}\PYG{o}{.}\PYG{n}{argmin}\PYG{p}{(}\PYG{n}{np}\PYG{o}{.}\PYG{n}{abs}\PYG{p}{(}\PYG{n}{x} \PYG{o}{\PYGZhy{}} \PYG{l+m+mf}{0.2}\PYG{p}{))}
+    \PYG{n}{x\PYGZus{}idx\PYGZus{}Q} \PYG{o}{=} \PYG{n}{np}\PYG{o}{.}\PYG{n}{argmin}\PYG{p}{(}\PYG{n}{np}\PYG{o}{.}\PYG{n}{abs}\PYG{p}{(}\PYG{n}{x} \PYG{o}{\PYGZhy{}} \PYG{l+m+mf}{0.4}\PYG{p}{))}
+    \PYG{n}{x\PYGZus{}idx\PYGZus{}R} \PYG{o}{=} \PYG{n}{np}\PYG{o}{.}\PYG{n}{argmin}\PYG{p}{(}\PYG{n}{np}\PYG{o}{.}\PYG{n}{abs}\PYG{p}{(}\PYG{n}{x} \PYG{o}{\PYGZhy{}} \PYG{n}{gparams}\PYG{o}{.}\PYG{n}{X\PYGZus{}R}\PYG{p}{))}
+
+    \PYG{n}{t\PYGZus{}idx\PYGZus{}0} \PYG{o}{=} \PYG{l+m+mi}{0}  \PYG{c+c1}{\PYGZsh{} t = 0 para los puntos P y Q.}
+    \PYG{n}{t\PYGZus{}idx\PYGZus{}R} \PYG{o}{=} \PYG{n}{np}\PYG{o}{.}\PYG{n}{argmin}\PYG{p}{(}\PYG{n}{np}\PYG{o}{.}\PYG{n}{abs}\PYG{p}{(}\PYG{n}{t} \PYG{o}{\PYGZhy{}} \PYG{n}{gparams}\PYG{o}{.}\PYG{n}{T\PYGZus{}R}\PYG{p}{))}  \PYG{c+c1}{\PYGZsh{} t = 0.1 para el punto R.}
+
+    \PYG{n}{u\PYGZus{}numerico\PYGZus{}P} \PYG{o}{=} \PYG{n}{u}\PYG{p}{[}\PYG{n}{t\PYGZus{}idx\PYGZus{}0}\PYG{p}{,} \PYG{n}{x\PYGZus{}idx\PYGZus{}P}\PYG{p}{]}  \PYG{c+c1}{\PYGZsh{} Solución numérica en P(0.2, 0).}
+    \PYG{n}{u\PYGZus{}numerico\PYGZus{}Q} \PYG{o}{=} \PYG{n}{u}\PYG{p}{[}\PYG{n}{t\PYGZus{}idx\PYGZus{}0}\PYG{p}{,} \PYG{n}{x\PYGZus{}idx\PYGZus{}Q}\PYG{p}{]}  \PYG{c+c1}{\PYGZsh{} Solución numérica en Q(0.4, 0).}
+    \PYG{n}{u\PYGZus{}numerico\PYGZus{}R} \PYG{o}{=} \PYG{n}{u}\PYG{p}{[}\PYG{n}{t\PYGZus{}idx\PYGZus{}R}\PYG{p}{,} \PYG{n}{x\PYGZus{}idx\PYGZus{}R}\PYG{p}{]}  \PYG{c+c1}{\PYGZsh{} Solución numérica en R(0.3, 0.1).}
+
+    \PYG{n}{informer}\PYG{o}{.}\PYG{n}{info}\PYG{p}{(}\PYG{l+s+sa}{f}\PYG{l+s+s2}{\PYGZdq{}Solución numérica en P(0.2, 0): }\PYG{l+s+si}{\PYGZob{}}\PYG{n}{u\PYGZus{}numerico\PYGZus{}P}\PYG{l+s+si}{\PYGZcb{}}\PYG{l+s+s2}{\PYGZdq{}}\PYG{p}{)}
+    \PYG{n}{informer}\PYG{o}{.}\PYG{n}{info}\PYG{p}{(}\PYG{l+s+sa}{f}\PYG{l+s+s2}{\PYGZdq{}Solución numérica en Q(0.4, 0): }\PYG{l+s+si}{\PYGZob{}}\PYG{n}{u\PYGZus{}numerico\PYGZus{}Q}\PYG{l+s+si}{\PYGZcb{}}\PYG{l+s+s2}{\PYGZdq{}}\PYG{p}{)}
+    \PYG{n}{informer}\PYG{o}{.}\PYG{n}{info}\PYG{p}{(}\PYG{l+s+sa}{f}\PYG{l+s+s2}{\PYGZdq{}Solución numérica en R(0.3, 0.1): }\PYG{l+s+si}{\PYGZob{}}\PYG{n}{u\PYGZus{}numerico\PYGZus{}R}\PYG{l+s+si}{\PYGZcb{}}\PYG{l+s+s2}{\PYGZdq{}}\PYG{p}{)}
+
+    \PYG{c+c1}{\PYGZsh{} 4. Comparación cuantitativa en los puntos P, Q y R.}
+    \PYG{n}{error\PYGZus{}absoluto\PYGZus{}P} \PYG{o}{=} \PYG{n}{np}\PYG{o}{.}\PYG{n}{abs}\PYG{p}{(}\PYG{n}{u\PYGZus{}numerico\PYGZus{}P} \PYG{o}{\PYGZhy{}} \PYG{n}{u\PYGZus{}analitico\PYGZus{}P}\PYG{p}{)}
+    \PYG{n}{error\PYGZus{}relativo\PYGZus{}P} \PYG{o}{=} \PYG{p}{(}\PYG{n}{error\PYGZus{}absoluto\PYGZus{}P} \PYG{o}{/} \PYG{n}{np}\PYG{o}{.}\PYG{n}{abs}\PYG{p}{(}\PYG{n}{u\PYGZus{}analitico\PYGZus{}P}\PYG{p}{))} \PYG{o}{*} \PYG{l+m+mi}{100}
+
+    \PYG{n}{error\PYGZus{}absoluto\PYGZus{}Q} \PYG{o}{=} \PYG{n}{np}\PYG{o}{.}\PYG{n}{abs}\PYG{p}{(}\PYG{n}{u\PYGZus{}numerico\PYGZus{}Q} \PYG{o}{\PYGZhy{}} \PYG{n}{u\PYGZus{}analitico\PYGZus{}Q}\PYG{p}{)}
+    \PYG{n}{error\PYGZus{}relativo\PYGZus{}Q} \PYG{o}{=} \PYG{p}{(}\PYG{n}{error\PYGZus{}absoluto\PYGZus{}Q} \PYG{o}{/} \PYG{n}{np}\PYG{o}{.}\PYG{n}{abs}\PYG{p}{(}\PYG{n}{u\PYGZus{}analitico\PYGZus{}Q}\PYG{p}{))} \PYG{o}{*} \PYG{l+m+mi}{100}
+
+    \PYG{n}{error\PYGZus{}absoluto\PYGZus{}R} \PYG{o}{=} \PYG{n}{np}\PYG{o}{.}\PYG{n}{abs}\PYG{p}{(}\PYG{n}{u\PYGZus{}numerico\PYGZus{}R} \PYG{o}{\PYGZhy{}} \PYG{n}{u\PYGZus{}analitico\PYGZus{}R}\PYG{p}{)}
+    \PYG{n}{error\PYGZus{}relativo\PYGZus{}R} \PYG{o}{=} \PYG{p}{(}\PYG{n}{error\PYGZus{}absoluto\PYGZus{}R} \PYG{o}{/} \PYG{n}{np}\PYG{o}{.}\PYG{n}{abs}\PYG{p}{(}\PYG{n}{u\PYGZus{}analitico\PYGZus{}R}\PYG{p}{))} \PYG{o}{*} \PYG{l+m+mi}{100}
+
+    \PYG{n}{informer}\PYG{o}{.}\PYG{n}{info}\PYG{p}{(}\PYG{l+s+sa}{f}\PYG{l+s+s2}{\PYGZdq{}Error absoluto en P(0.2, 0): }\PYG{l+s+si}{\PYGZob{}}\PYG{n}{error\PYGZus{}absoluto\PYGZus{}P}\PYG{l+s+si}{\PYGZcb{}}\PYG{l+s+s2}{, Error relativo: }\PYG{l+s+si}{\PYGZob{}}\PYG{n}{error\PYGZus{}relativo\PYGZus{}P}\PYG{l+s+si}{:}\PYG{l+s+s2}{.2f}\PYG{l+s+si}{\PYGZcb{}}\PYG{l+s+s2}{\PYGZpc{}\PYGZdq{}}\PYG{p}{)}
+    \PYG{n}{informer}\PYG{o}{.}\PYG{n}{info}\PYG{p}{(}\PYG{l+s+sa}{f}\PYG{l+s+s2}{\PYGZdq{}Error absoluto en Q(0.4, 0): }\PYG{l+s+si}{\PYGZob{}}\PYG{n}{error\PYGZus{}absoluto\PYGZus{}Q}\PYG{l+s+si}{\PYGZcb{}}\PYG{l+s+s2}{, Error relativo: }\PYG{l+s+si}{\PYGZob{}}\PYG{n}{error\PYGZus{}relativo\PYGZus{}Q}\PYG{l+s+si}{:}\PYG{l+s+s2}{.2f}\PYG{l+s+si}{\PYGZcb{}}\PYG{l+s+s2}{\PYGZpc{}\PYGZdq{}}\PYG{p}{)}
+    \PYG{n}{informer}\PYG{o}{.}\PYG{n}{info}\PYG{p}{(}\PYG{l+s+sa}{f}\PYG{l+s+s2}{\PYGZdq{}Error absoluto en R(0.3, 0.1): }\PYG{l+s+si}{\PYGZob{}}\PYG{n}{error\PYGZus{}absoluto\PYGZus{}R}\PYG{l+s+si}{\PYGZcb{}}\PYG{l+s+s2}{, Error relativo: }\PYG{l+s+si}{\PYGZob{}}\PYG{n}{error\PYGZus{}relativo\PYGZus{}R}\PYG{l+s+si}{:}\PYG{l+s+s2}{.2f}\PYG{l+s+si}{\PYGZcb{}}\PYG{l+s+s2}{\PYGZpc{}\PYGZdq{}}\PYG{p}{)}
+
+    \PYG{c+c1}{\PYGZsh{} 5. Volcado de resultados en una tabla de pandas.}
+    \PYG{n}{tabla\PYGZus{}errores} \PYG{o}{=} \PYG{n}{pd}\PYG{o}{.}\PYG{n}{DataFrame}\PYG{p}{(}
+        \PYG{n}{data}\PYG{o}{=}\PYG{p}{[}
+            \PYG{p}{[}\PYG{l+s+s1}{\PYGZsq{}P(0.2, 0)\PYGZsq{}}\PYG{p}{,} \PYG{n}{u\PYGZus{}analitico\PYGZus{}P}\PYG{p}{,} \PYG{n}{u\PYGZus{}numerico\PYGZus{}P}\PYG{p}{,} \PYG{n}{error\PYGZus{}absoluto\PYGZus{}P}\PYG{p}{,} \PYG{n}{error\PYGZus{}relativo\PYGZus{}P}\PYG{p}{],}
+            \PYG{p}{[}\PYG{l+s+s1}{\PYGZsq{}Q(0.4, 0)\PYGZsq{}}\PYG{p}{,} \PYG{n}{u\PYGZus{}analitico\PYGZus{}Q}\PYG{p}{,} \PYG{n}{u\PYGZus{}numerico\PYGZus{}Q}\PYG{p}{,} \PYG{n}{error\PYGZus{}absoluto\PYGZus{}Q}\PYG{p}{,} \PYG{n}{error\PYGZus{}relativo\PYGZus{}Q}\PYG{p}{],}
+            \PYG{p}{[}\PYG{l+s+s1}{\PYGZsq{}R(0.3, 0.1)\PYGZsq{}}\PYG{p}{,} \PYG{n}{u\PYGZus{}analitico\PYGZus{}R}\PYG{p}{,} \PYG{n}{u\PYGZus{}numerico\PYGZus{}R}\PYG{p}{,} \PYG{n}{error\PYGZus{}absoluto\PYGZus{}R}\PYG{p}{,} \PYG{n}{error\PYGZus{}relativo\PYGZus{}R}\PYG{p}{]}
+        \PYG{p}{],}
+        \PYG{n}{columns}\PYG{o}{=}\PYG{p}{[}\PYG{l+s+s1}{\PYGZsq{}Punto\PYGZsq{}}\PYG{p}{,} \PYG{l+s+s1}{\PYGZsq{}Valor Analítico\PYGZsq{}}\PYG{p}{,} \PYG{l+s+s1}{\PYGZsq{}Valor Numérico\PYGZsq{}}\PYG{p}{,} \PYG{l+s+s1}{\PYGZsq{}Error Absoluto\PYGZsq{}}\PYG{p}{,} \PYG{l+s+s1}{\PYGZsq{}Error Relativo (\PYGZpc{})\PYGZsq{}}\PYG{p}{]}
+    \PYG{p}{)}
+
+    \PYG{c+c1}{\PYGZsh{} Guardar la tabla en un archivo CSV.}
+    \PYG{n}{tabla\PYGZus{}errores}\PYG{o}{.}\PYG{n}{to\PYGZus{}csv}\PYG{p}{(}\PYG{l+s+sa}{f}\PYG{l+s+s2}{\PYGZdq{}}\PYG{l+s+si}{\PYGZob{}}\PYG{n}{RUTA\PYGZus{}OUTPUTS}\PYG{l+s+si}{\PYGZcb{}}\PYG{l+s+s2}{/tabla\PYGZus{}errores.csv\PYGZdq{}}\PYG{p}{,} \PYG{n}{index}\PYG{o}{=}\PYG{k+kc}{False}\PYG{p}{)}
+    \PYG{n}{informer}\PYG{o}{.}\PYG{n}{info}\PYG{p}{(}\PYG{l+s+sa}{f}\PYG{l+s+s2}{\PYGZdq{}Resultados volcados en }\PYG{l+s+si}{\PYGZob{}}\PYG{n}{RUTA\PYGZus{}OUTPUTS}\PYG{l+s+si}{\PYGZcb{}}\PYG{l+s+s2}{/tabla\PYGZus{}errores.csv\PYGZdq{}}\PYG{p}{)}
+
+    \PYG{c+c1}{\PYGZsh{} 6. Función para convertir a formato LaTeX.}
+    \PYG{k}{def} \PYG{n+nf}{convertir\PYGZus{}tabla\PYGZus{}a\PYGZus{}latex}\PYG{p}{(}\PYG{n}{df}\PYG{p}{:} \PYG{n}{pd}\PYG{o}{.}\PYG{n}{DataFrame}\PYG{p}{,} \PYG{n}{ruta\PYGZus{}salida}\PYG{p}{:} \PYG{n+nb}{str}\PYG{p}{):}
+        \PYG{n}{latex\PYGZus{}code} \PYG{o}{=} \PYG{n}{df}\PYG{o}{.}\PYG{n}{to\PYGZus{}latex}\PYG{p}{(}\PYG{n}{index}\PYG{o}{=}\PYG{k+kc}{False}\PYG{p}{)}
+        \PYG{k}{with} \PYG{n+nb}{open}\PYG{p}{(}\PYG{n}{ruta\PYGZus{}salida}\PYG{p}{,} \PYG{l+s+s1}{\PYGZsq{}w\PYGZsq{}}\PYG{p}{)} \PYG{k}{as} \PYG{n}{f}\PYG{p}{:}
+            \PYG{n}{f}\PYG{o}{.}\PYG{n}{write}\PYG{p}{(}\PYG{n}{latex\PYGZus{}code}\PYG{p}{)}
+        \PYG{n}{informer}\PYG{o}{.}\PYG{n}{info}\PYG{p}{(}\PYG{l+s+sa}{f}\PYG{l+s+s2}{\PYGZdq{}Tabla en formato LaTeX guardada en }\PYG{l+s+si}{\PYGZob{}}\PYG{n}{ruta\PYGZus{}salida}\PYG{l+s+si}{\PYGZcb{}}\PYG{l+s+s2}{\PYGZdq{}}\PYG{p}{)}
+
+    \PYG{c+c1}{\PYGZsh{} Convertir la tabla a LaTeX.}
+    \PYG{n}{convertir\PYGZus{}tabla\PYGZus{}a\PYGZus{}latex}\PYG{p}{(}\PYG{n}{tabla\PYGZus{}errores}\PYG{p}{,} \PYG{l+s+sa}{f}\PYG{l+s+s2}{\PYGZdq{}}\PYG{l+s+si}{\PYGZob{}}\PYG{n}{RUTA\PYGZus{}OUTPUTS}\PYG{l+s+si}{\PYGZcb{}}\PYG{l+s+s2}{/}\PYG{l+s+si}{\PYGZob{}}\PYG{n}{TEMATICA}\PYG{l+s+si}{\PYGZcb{}}\PYG{l+s+s2}{\PYGZus{}tabla\PYGZus{}errores.tex\PYGZdq{}}\PYG{p}{)}
+
+    \PYG{c+c1}{\PYGZsh{} 7. Visualización de la solución numérica.}
+    \PYG{n}{plt}\PYG{o}{.}\PYG{n}{figure}\PYG{p}{(}\PYG{n}{figsize}\PYG{o}{=}\PYG{p}{(}\PYG{l+m+mi}{8}\PYG{p}{,} \PYG{l+m+mi}{6}\PYG{p}{))}
+    \PYG{n}{X}\PYG{p}{,} \PYG{n}{T\PYGZus{}grid} \PYG{o}{=} \PYG{n}{np}\PYG{o}{.}\PYG{n}{meshgrid}\PYG{p}{(}\PYG{n}{x}\PYG{p}{,} \PYG{n}{t}\PYG{p}{)}
+    \PYG{n}{plt}\PYG{o}{.}\PYG{n}{contourf}\PYG{p}{(}\PYG{n}{X}\PYG{p}{,} \PYG{n}{T\PYGZus{}grid}\PYG{p}{,} \PYG{n}{u}\PYG{p}{,} \PYG{n}{levels}\PYG{o}{=}\PYG{l+m+mi}{50}\PYG{p}{,} \PYG{n}{cmap}\PYG{o}{=}\PYG{l+s+s1}{\PYGZsq{}viridis\PYGZsq{}}\PYG{p}{)}
+    \PYG{n}{plt}\PYG{o}{.}\PYG{n}{colorbar}\PYG{p}{(}\PYG{n}{label}\PYG{o}{=}\PYG{l+s+s1}{\PYGZsq{}u(x, t)\PYGZsq{}}\PYG{p}{)}
+    \PYG{n}{plt}\PYG{o}{.}\PYG{n}{xlabel}\PYG{p}{(}\PYG{l+s+s1}{\PYGZsq{}x\PYGZsq{}}\PYG{p}{)}
+    \PYG{n}{plt}\PYG{o}{.}\PYG{n}{ylabel}\PYG{p}{(}\PYG{l+s+s1}{\PYGZsq{}t\PYGZsq{}}\PYG{p}{)}
+    \PYG{n}{plt}\PYG{o}{.}\PYG{n}{title}\PYG{p}{(}\PYG{l+s+s1}{\PYGZsq{}Solución de la ecuación diferencial hiperbólica\PYGZsq{}}\PYG{p}{)}
+    \PYG{n}{plt}\PYG{o}{.}\PYG{n}{savefig}\PYG{p}{(}\PYG{l+s+sa}{f}\PYG{l+s+s2}{\PYGZdq{}}\PYG{l+s+si}{\PYGZob{}}\PYG{n}{RUTA\PYGZus{}OUTPUTS}\PYG{l+s+si}{\PYGZcb{}}\PYG{l+s+s2}{/}\PYG{l+s+si}{\PYGZob{}}\PYG{n}{TEMATICA}\PYG{l+s+si}{\PYGZcb{}\PYGZob{}}\PYG{n}{FORMATO\PYGZus{}GRAFICAS}\PYG{l+s+si}{\PYGZcb{}}\PYG{l+s+s2}{\PYGZdq{}}\PYG{p}{)}
+
+
+\end{Verbatim}

@@ -1,0 +1,36 @@
+\begin{Verbatim}[commandchars=\\\{\}]
+\PYG{c+c1}{\PYGZsh{} /e/src/lib/parsers.py}
+
+\PYG{k+kn}{import} \PYG{n+nn}{argparse}
+\PYG{k+kn}{from} \PYG{n+nn}{.logger} \PYG{k+kn}{import} \PYG{p}{(}
+    \PYG{n}{dict\PYGZus{}log\PYGZus{}level}\PYG{p}{,}
+    \PYG{n}{dict\PYGZus{}level\PYGZus{}log}
+\PYG{p}{)}
+\PYG{k+kn}{from} \PYG{n+nn}{..core.\PYGZus{}typing} \PYG{k+kn}{import} \PYG{n}{Any}
+
+\PYG{k}{def} \PYG{n+nf}{define\PYGZus{}parser}\PYG{p}{(}\PYG{n}{mensaje\PYGZus{}descripcion}\PYG{p}{:} \PYG{n+nb}{str} \PYG{o}{=} \PYG{l+s+s2}{\PYGZdq{}Este script procesa datos para MNA.\PYGZdq{}}\PYG{p}{)} \PYG{o}{\PYGZhy{}\PYGZgt{}} \PYG{n}{Any}\PYG{p}{:}
+
+    \PYG{n}{parser} \PYG{o}{=} \PYG{n}{argparse}\PYG{o}{.}\PYG{n}{ArgumentParser}\PYG{p}{(}\PYG{n}{description}\PYG{o}{=}\PYG{n}{mensaje\PYGZus{}descripcion}\PYG{p}{)}
+
+    \PYG{n}{parser}\PYG{o}{.}\PYG{n}{add\PYGZus{}argument}\PYG{p}{(}
+        \PYG{l+s+s2}{\PYGZdq{}\PYGZhy{}vsy\PYGZdq{}}\PYG{p}{,} \PYG{l+s+s2}{\PYGZdq{}\PYGZhy{}\PYGZhy{}verbosity\PYGZdq{}}\PYG{p}{,}
+        \PYG{n+nb}{type}\PYG{o}{=}\PYG{n+nb}{int}\PYG{p}{,}
+        \PYG{n}{choices}\PYG{o}{=}\PYG{p}{[}\PYG{n}{level} \PYG{k}{for} \PYG{n}{level} \PYG{o+ow}{in} \PYG{n}{dict\PYGZus{}log\PYGZus{}level}\PYG{o}{.}\PYG{n}{values}\PYG{p}{()],}
+        \PYG{n}{default}\PYG{o}{=}\PYG{l+s+s1}{\PYGZsq{}INFO\PYGZsq{}}\PYG{p}{,}
+        \PYG{n}{help}\PYG{o}{=}\PYG{l+s+sa}{f}\PYG{l+s+s2}{\PYGZdq{}Nivel de verbosidad }\PYG{l+s+si}{\PYGZob{}}\PYG{n+nb}{list}\PYG{p}{(}\PYG{n}{dict\PYGZus{}log\PYGZus{}level}\PYG{o}{.}\PYG{n}{items}\PYG{p}{())}\PYG{l+s+si}{\PYGZcb{}}\PYG{l+s+s2}{\PYGZdq{}}
+    \PYG{p}{)}
+
+    \PYG{n}{parser}\PYG{o}{.}\PYG{n}{add\PYGZus{}argument}\PYG{p}{(}
+        \PYG{l+s+s2}{\PYGZdq{}\PYGZhy{}sp\PYGZdq{}}\PYG{p}{,} \PYG{l+s+s2}{\PYGZdq{}\PYGZhy{}\PYGZhy{}show\PYGZus{}plots\PYGZdq{}}\PYG{p}{,}
+        \PYG{n}{action}\PYG{o}{=}\PYG{l+s+s2}{\PYGZdq{}store\PYGZus{}true\PYGZdq{}}\PYG{p}{,}
+        \PYG{n}{help}\PYG{o}{=}\PYG{l+s+s2}{\PYGZdq{}Muestra los plots del script.\PYGZdq{}}
+    \PYG{p}{)}
+
+    \PYG{n}{parser}\PYG{o}{.}\PYG{n}{add\PYGZus{}argument}\PYG{p}{(}
+        \PYG{l+s+s2}{\PYGZdq{}\PYGZhy{}pl\PYGZdq{}}\PYG{p}{,} \PYG{l+s+s2}{\PYGZdq{}\PYGZhy{}\PYGZhy{}parallel\PYGZdq{}}\PYG{p}{,}
+        \PYG{n}{action}\PYG{o}{=}\PYG{l+s+s2}{\PYGZdq{}store\PYGZus{}true\PYGZdq{}}\PYG{p}{,}
+        \PYG{n}{help}\PYG{o}{=}\PYG{l+s+s2}{\PYGZdq{}Hace los calculos (los que procedan) en paralelo.\PYGZdq{}}
+    \PYG{p}{)}
+
+    \PYG{k}{return} \PYG{n}{parser}
+\end{Verbatim}

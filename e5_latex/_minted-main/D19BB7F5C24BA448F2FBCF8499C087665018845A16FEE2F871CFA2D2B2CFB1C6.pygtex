@@ -1,0 +1,272 @@
+\begin{Verbatim}[commandchars=\\\{\}]
+
+\PYG{c+c1}{\PYGZsh{} .}
+
+\PYG{k+kn}{import} \PYG{n+nn}{numpy} \PYG{k}{as} \PYG{n+nn}{np}
+\PYG{k+kn}{import} \PYG{n+nn}{matplotlib.pyplot} \PYG{k}{as} \PYG{n+nn}{plt}
+\PYG{k+kn}{from} \PYG{n+nn}{scipy.linalg} \PYG{k+kn}{import} \PYG{n}{solve}
+\PYG{k+kn}{import} \PYG{n+nn}{pandas} \PYG{k}{as} \PYG{n+nn}{pd}
+
+\PYG{c+c1}{\PYGZsh{} Definimos funciones para obtener las matrices de rigidez y el vector de carga para elementos lineales y cuadráticos}
+\PYG{k}{def} \PYG{n+nf}{stiffness\PYGZus{}matrix\PYGZus{}linear}\PYG{p}{(}\PYG{n}{n\PYGZus{}elements}\PYG{p}{):}
+    \PYG{l+s+sd}{\PYGZdq{}\PYGZdq{}\PYGZdq{}Genera la matriz de rigidez para elementos finitos lineales con n elementos\PYGZdq{}\PYGZdq{}\PYGZdq{}}
+    \PYG{n}{n\PYGZus{}nodes} \PYG{o}{=} \PYG{n}{n\PYGZus{}elements} \PYG{o}{+} \PYG{l+m+mi}{1}
+    \PYG{n}{K} \PYG{o}{=} \PYG{n}{np}\PYG{o}{.}\PYG{n}{zeros}\PYG{p}{((}\PYG{n}{n\PYGZus{}nodes}\PYG{p}{,} \PYG{n}{n\PYGZus{}nodes}\PYG{p}{))}
+    \PYG{n}{h} \PYG{o}{=} \PYG{l+m+mf}{1.0} \PYG{o}{/} \PYG{n}{n\PYGZus{}elements}
+
+    \PYG{c+c1}{\PYGZsh{} Ensamblar la matriz de rigidez}
+    \PYG{k}{for} \PYG{n}{i} \PYG{o+ow}{in} \PYG{n+nb}{range}\PYG{p}{(}\PYG{n}{n\PYGZus{}elements}\PYG{p}{):}
+        \PYG{n}{K}\PYG{p}{[}\PYG{n}{i}\PYG{p}{,} \PYG{n}{i}\PYG{p}{]} \PYG{o}{+=} \PYG{l+m+mi}{1} \PYG{o}{/} \PYG{n}{h}
+        \PYG{n}{K}\PYG{p}{[}\PYG{n}{i}\PYG{p}{,} \PYG{n}{i} \PYG{o}{+} \PYG{l+m+mi}{1}\PYG{p}{]} \PYG{o}{+=} \PYG{o}{\PYGZhy{}}\PYG{l+m+mi}{1} \PYG{o}{/} \PYG{n}{h}
+        \PYG{n}{K}\PYG{p}{[}\PYG{n}{i} \PYG{o}{+} \PYG{l+m+mi}{1}\PYG{p}{,} \PYG{n}{i}\PYG{p}{]} \PYG{o}{+=} \PYG{o}{\PYGZhy{}}\PYG{l+m+mi}{1} \PYG{o}{/} \PYG{n}{h}
+        \PYG{n}{K}\PYG{p}{[}\PYG{n}{i} \PYG{o}{+} \PYG{l+m+mi}{1}\PYG{p}{,} \PYG{n}{i} \PYG{o}{+} \PYG{l+m+mi}{1}\PYG{p}{]} \PYG{o}{+=} \PYG{l+m+mi}{1} \PYG{o}{/} \PYG{n}{h}
+
+    \PYG{k}{return} \PYG{n}{K}
+
+\PYG{k}{def} \PYG{n+nf}{load\PYGZus{}vector\PYGZus{}linear}\PYG{p}{(}\PYG{n}{n\PYGZus{}elements}\PYG{p}{):}
+    \PYG{l+s+sd}{\PYGZdq{}\PYGZdq{}\PYGZdq{}Genera el vector de carga para elementos finitos lineales con n elementos\PYGZdq{}\PYGZdq{}\PYGZdq{}}
+    \PYG{n}{n\PYGZus{}nodes} \PYG{o}{=} \PYG{n}{n\PYGZus{}elements} \PYG{o}{+} \PYG{l+m+mi}{1}
+    \PYG{n}{f} \PYG{o}{=} \PYG{n}{np}\PYG{o}{.}\PYG{n}{zeros}\PYG{p}{(}\PYG{n}{n\PYGZus{}nodes}\PYG{p}{)}
+    \PYG{n}{h} \PYG{o}{=} \PYG{l+m+mf}{1.0} \PYG{o}{/} \PYG{n}{n\PYGZus{}elements}
+
+    \PYG{c+c1}{\PYGZsh{} Ensamblar el vector de carga}
+    \PYG{k}{for} \PYG{n}{i} \PYG{o+ow}{in} \PYG{n+nb}{range}\PYG{p}{(}\PYG{n}{n\PYGZus{}elements}\PYG{p}{):}
+        \PYG{n}{x\PYGZus{}i} \PYG{o}{=} \PYG{n}{i} \PYG{o}{*} \PYG{n}{h}
+        \PYG{n}{x\PYGZus{}i1} \PYG{o}{=} \PYG{p}{(}\PYG{n}{i} \PYG{o}{+} \PYG{l+m+mi}{1}\PYG{p}{)} \PYG{o}{*} \PYG{n}{h}
+        \PYG{n}{f}\PYG{p}{[}\PYG{n}{i}\PYG{p}{]} \PYG{o}{+=} \PYG{n}{h} \PYG{o}{/} \PYG{l+m+mi}{2} \PYG{o}{*} \PYG{p}{(}\PYG{n}{x\PYGZus{}i} \PYG{o}{+} \PYG{n}{h} \PYG{o}{/} \PYG{l+m+mi}{2}\PYG{p}{)}
+        \PYG{n}{f}\PYG{p}{[}\PYG{n}{i} \PYG{o}{+} \PYG{l+m+mi}{1}\PYG{p}{]} \PYG{o}{+=} \PYG{n}{h} \PYG{o}{/} \PYG{l+m+mi}{2} \PYG{o}{*} \PYG{p}{(}\PYG{n}{x\PYGZus{}i1} \PYG{o}{+} \PYG{n}{h} \PYG{o}{/} \PYG{l+m+mi}{2}\PYG{p}{)}
+
+    \PYG{k}{return} \PYG{n}{f}
+
+\PYG{k}{def} \PYG{n+nf}{apply\PYGZus{}boundary\PYGZus{}conditions}\PYG{p}{(}\PYG{n}{K}\PYG{p}{,} \PYG{n}{f}\PYG{p}{):}
+    \PYG{l+s+sd}{\PYGZdq{}\PYGZdq{}\PYGZdq{}Aplica las condiciones de contorno u(0)=0 y du/dx(1)=0\PYGZdq{}\PYGZdq{}\PYGZdq{}}
+    \PYG{n}{K}\PYG{p}{[}\PYG{l+m+mi}{0}\PYG{p}{,} \PYG{p}{:]} \PYG{o}{=} \PYG{l+m+mi}{0}
+    \PYG{n}{K}\PYG{p}{[}\PYG{l+m+mi}{0}\PYG{p}{,} \PYG{l+m+mi}{0}\PYG{p}{]} \PYG{o}{=} \PYG{l+m+mi}{1}
+    \PYG{n}{f}\PYG{p}{[}\PYG{l+m+mi}{0}\PYG{p}{]} \PYG{o}{=} \PYG{l+m+mi}{0}
+
+    \PYG{c+c1}{\PYGZsh{} La condición du/dx(1) = 0 ya está implícita en el problema (sin flujo)}
+    \PYG{k}{return} \PYG{n}{K}\PYG{p}{,} \PYG{n}{f}
+
+\PYG{c+c1}{\PYGZsh{} Matriz de rigidez para funciones cuadráticas}
+\PYG{k}{def} \PYG{n+nf}{stiffness\PYGZus{}matrix\PYGZus{}quadratic}\PYG{p}{(}\PYG{n}{n\PYGZus{}elements}\PYG{p}{):}
+    \PYG{l+s+sd}{\PYGZdq{}\PYGZdq{}\PYGZdq{}Genera la matriz de rigidez para elementos finitos cuadráticos con n elementos\PYGZdq{}\PYGZdq{}\PYGZdq{}}
+    \PYG{n}{n\PYGZus{}nodes} \PYG{o}{=} \PYG{l+m+mi}{2} \PYG{o}{*} \PYG{n}{n\PYGZus{}elements} \PYG{o}{+} \PYG{l+m+mi}{1}  \PYG{c+c1}{\PYGZsh{} 3 nodos por elemento menos 1}
+    \PYG{n}{K} \PYG{o}{=} \PYG{n}{np}\PYG{o}{.}\PYG{n}{zeros}\PYG{p}{((}\PYG{n}{n\PYGZus{}nodes}\PYG{p}{,} \PYG{n}{n\PYGZus{}nodes}\PYG{p}{))}
+    \PYG{n}{h} \PYG{o}{=} \PYG{l+m+mf}{1.0} \PYG{o}{/} \PYG{n}{n\PYGZus{}elements}
+
+    \PYG{c+c1}{\PYGZsh{} Ensamblar la matriz de rigidez}
+    \PYG{k}{for} \PYG{n}{i} \PYG{o+ow}{in} \PYG{n+nb}{range}\PYG{p}{(}\PYG{n}{n\PYGZus{}elements}\PYG{p}{):}
+        \PYG{c+c1}{\PYGZsh{} Indices de los nodos de cada elemento}
+        \PYG{n}{idx} \PYG{o}{=} \PYG{p}{[}\PYG{l+m+mi}{2} \PYG{o}{*} \PYG{n}{i}\PYG{p}{,} \PYG{l+m+mi}{2} \PYG{o}{*} \PYG{n}{i} \PYG{o}{+} \PYG{l+m+mi}{1}\PYG{p}{,} \PYG{l+m+mi}{2} \PYG{o}{*} \PYG{n}{i} \PYG{o}{+} \PYG{l+m+mi}{2}\PYG{p}{]}
+        \PYG{n}{Ke} \PYG{o}{=} \PYG{n}{np}\PYG{o}{.}\PYG{n}{array}\PYG{p}{([}
+            \PYG{p}{[}\PYG{l+m+mi}{7}\PYG{p}{,} \PYG{o}{\PYGZhy{}}\PYG{l+m+mi}{8}\PYG{p}{,} \PYG{l+m+mi}{1}\PYG{p}{],}
+            \PYG{p}{[}\PYG{o}{\PYGZhy{}}\PYG{l+m+mi}{8}\PYG{p}{,} \PYG{l+m+mi}{16}\PYG{p}{,} \PYG{o}{\PYGZhy{}}\PYG{l+m+mi}{8}\PYG{p}{],}
+            \PYG{p}{[}\PYG{l+m+mi}{1}\PYG{p}{,} \PYG{o}{\PYGZhy{}}\PYG{l+m+mi}{8}\PYG{p}{,} \PYG{l+m+mi}{7}\PYG{p}{]}
+        \PYG{p}{])} \PYG{o}{*} \PYG{p}{(}\PYG{l+m+mi}{1} \PYG{o}{/} \PYG{p}{(}\PYG{l+m+mi}{3} \PYG{o}{*} \PYG{n}{h}\PYG{p}{))}
+
+        \PYG{c+c1}{\PYGZsh{} Agregar el Ke a la matriz global}
+        \PYG{k}{for} \PYG{n}{a} \PYG{o+ow}{in} \PYG{n+nb}{range}\PYG{p}{(}\PYG{l+m+mi}{3}\PYG{p}{):}
+            \PYG{k}{for} \PYG{n}{b} \PYG{o+ow}{in} \PYG{n+nb}{range}\PYG{p}{(}\PYG{l+m+mi}{3}\PYG{p}{):}
+                \PYG{n}{K}\PYG{p}{[}\PYG{n}{idx}\PYG{p}{[}\PYG{n}{a}\PYG{p}{],} \PYG{n}{idx}\PYG{p}{[}\PYG{n}{b}\PYG{p}{]]} \PYG{o}{+=} \PYG{n}{Ke}\PYG{p}{[}\PYG{n}{a}\PYG{p}{,} \PYG{n}{b}\PYG{p}{]}
+
+    \PYG{k}{return} \PYG{n}{K}
+
+\PYG{k}{def} \PYG{n+nf}{load\PYGZus{}vector\PYGZus{}quadratic}\PYG{p}{(}\PYG{n}{n\PYGZus{}elements}\PYG{p}{):}
+    \PYG{l+s+sd}{\PYGZdq{}\PYGZdq{}\PYGZdq{}Genera el vector de carga para elementos finitos cuadráticos con n elementos\PYGZdq{}\PYGZdq{}\PYGZdq{}}
+    \PYG{n}{n\PYGZus{}nodes} \PYG{o}{=} \PYG{l+m+mi}{2} \PYG{o}{*} \PYG{n}{n\PYGZus{}elements} \PYG{o}{+} \PYG{l+m+mi}{1}  \PYG{c+c1}{\PYGZsh{} 3 nodos por elemento menos 1}
+    \PYG{n}{f} \PYG{o}{=} \PYG{n}{np}\PYG{o}{.}\PYG{n}{zeros}\PYG{p}{(}\PYG{n}{n\PYGZus{}nodes}\PYG{p}{)}
+    \PYG{n}{h} \PYG{o}{=} \PYG{l+m+mf}{1.0} \PYG{o}{/} \PYG{n}{n\PYGZus{}elements}
+
+    \PYG{c+c1}{\PYGZsh{} Ensamblar el vector de carga}
+    \PYG{k}{for} \PYG{n}{i} \PYG{o+ow}{in} \PYG{n+nb}{range}\PYG{p}{(}\PYG{n}{n\PYGZus{}elements}\PYG{p}{):}
+        \PYG{c+c1}{\PYGZsh{} Indices de los nodos de cada elemento}
+        \PYG{n}{idx} \PYG{o}{=} \PYG{p}{[}\PYG{l+m+mi}{2} \PYG{o}{*} \PYG{n}{i}\PYG{p}{,} \PYG{l+m+mi}{2} \PYG{o}{*} \PYG{n}{i} \PYG{o}{+} \PYG{l+m+mi}{1}\PYG{p}{,} \PYG{l+m+mi}{2} \PYG{o}{*} \PYG{n}{i} \PYG{o}{+} \PYG{l+m+mi}{2}\PYG{p}{]}
+        \PYG{n}{fe} \PYG{o}{=} \PYG{n}{np}\PYG{o}{.}\PYG{n}{array}\PYG{p}{([}\PYG{l+m+mi}{1}\PYG{p}{,} \PYG{l+m+mi}{4}\PYG{p}{,} \PYG{l+m+mi}{1}\PYG{p}{])} \PYG{o}{*} \PYG{p}{(}\PYG{n}{h} \PYG{o}{/} \PYG{l+m+mi}{6}\PYG{p}{)}  \PYG{c+c1}{\PYGZsh{} Vector de carga para el término fuente lineal en x}
+
+        \PYG{c+c1}{\PYGZsh{} Agregar el fe al vector global}
+        \PYG{k}{for} \PYG{n}{a} \PYG{o+ow}{in} \PYG{n+nb}{range}\PYG{p}{(}\PYG{l+m+mi}{3}\PYG{p}{):}
+            \PYG{n}{f}\PYG{p}{[}\PYG{n}{idx}\PYG{p}{[}\PYG{n}{a}\PYG{p}{]]} \PYG{o}{+=} \PYG{n}{fe}\PYG{p}{[}\PYG{n}{a}\PYG{p}{]} \PYG{o}{*} \PYG{p}{(}\PYG{l+m+mi}{2} \PYG{o}{*} \PYG{n}{i} \PYG{o}{+} \PYG{n}{a}\PYG{p}{)} \PYG{o}{*} \PYG{n}{h} \PYG{o}{/} \PYG{l+m+mi}{2}  \PYG{c+c1}{\PYGZsh{} Peso con x medio en cada subintervalo}
+
+    \PYG{k}{return} \PYG{n}{f}
+
+\PYG{c+c1}{\PYGZsh{} Resolver para el caso (a) \PYGZhy{} 4 elementos finitos, interpolación lineal}
+\PYG{n}{n\PYGZus{}elements} \PYG{o}{=} \PYG{l+m+mi}{4}
+\PYG{n}{K} \PYG{o}{=} \PYG{n}{stiffness\PYGZus{}matrix\PYGZus{}linear}\PYG{p}{(}\PYG{n}{n\PYGZus{}elements}\PYG{p}{)}
+\PYG{n}{f} \PYG{o}{=} \PYG{n}{load\PYGZus{}vector\PYGZus{}linear}\PYG{p}{(}\PYG{n}{n\PYGZus{}elements}\PYG{p}{)}
+\PYG{n}{K\PYGZus{}bc}\PYG{p}{,} \PYG{n}{f\PYGZus{}bc} \PYG{o}{=} \PYG{n}{apply\PYGZus{}boundary\PYGZus{}conditions}\PYG{p}{(}\PYG{n}{K}\PYG{p}{,} \PYG{n}{f}\PYG{p}{)}
+
+\PYG{c+c1}{\PYGZsh{} Resolución del sistema}
+\PYG{n}{u} \PYG{o}{=} \PYG{n}{solve}\PYG{p}{(}\PYG{n}{K\PYGZus{}bc}\PYG{p}{,} \PYG{n}{f\PYGZus{}bc}\PYG{p}{)}
+
+\PYG{c+c1}{\PYGZsh{} Graficamos la solución obtenida}
+\PYG{n}{x} \PYG{o}{=} \PYG{n}{np}\PYG{o}{.}\PYG{n}{linspace}\PYG{p}{(}\PYG{l+m+mi}{0}\PYG{p}{,} \PYG{l+m+mi}{1}\PYG{p}{,} \PYG{n}{n\PYGZus{}elements} \PYG{o}{+} \PYG{l+m+mi}{1}\PYG{p}{)}
+
+\PYG{c+c1}{\PYGZsh{} Guardamos la solución para la comparación posterior}
+\PYG{n}{solutions} \PYG{o}{=} \PYG{p}{\PYGZob{}}\PYG{l+s+s2}{\PYGZdq{}4\PYGZus{}elements\PYGZus{}linear\PYGZdq{}}\PYG{p}{:} \PYG{n}{u}\PYG{p}{\PYGZcb{}}
+
+\PYG{c+c1}{\PYGZsh{} Resolver para el caso (b) \PYGZhy{} 8 elementos finitos, interpolación lineal}
+\PYG{n}{n\PYGZus{}elements} \PYG{o}{=} \PYG{l+m+mi}{8}
+\PYG{n}{K} \PYG{o}{=} \PYG{n}{stiffness\PYGZus{}matrix\PYGZus{}linear}\PYG{p}{(}\PYG{n}{n\PYGZus{}elements}\PYG{p}{)}
+\PYG{n}{f} \PYG{o}{=} \PYG{n}{load\PYGZus{}vector\PYGZus{}linear}\PYG{p}{(}\PYG{n}{n\PYGZus{}elements}\PYG{p}{)}
+\PYG{n}{K\PYGZus{}bc}\PYG{p}{,} \PYG{n}{f\PYGZus{}bc} \PYG{o}{=} \PYG{n}{apply\PYGZus{}boundary\PYGZus{}conditions}\PYG{p}{(}\PYG{n}{K}\PYG{p}{,} \PYG{n}{f}\PYG{p}{)}
+
+\PYG{c+c1}{\PYGZsh{} Resolución del sistema}
+\PYG{n}{u\PYGZus{}8\PYGZus{}elements} \PYG{o}{=} \PYG{n}{solve}\PYG{p}{(}\PYG{n}{K\PYGZus{}bc}\PYG{p}{,} \PYG{n}{f\PYGZus{}bc}\PYG{p}{)}
+
+\PYG{c+c1}{\PYGZsh{} Graficamos la solución obtenida}
+\PYG{n}{x\PYGZus{}8\PYGZus{}elements} \PYG{o}{=} \PYG{n}{np}\PYG{o}{.}\PYG{n}{linspace}\PYG{p}{(}\PYG{l+m+mi}{0}\PYG{p}{,} \PYG{l+m+mi}{1}\PYG{p}{,} \PYG{n}{n\PYGZus{}elements} \PYG{o}{+} \PYG{l+m+mi}{1}\PYG{p}{)}
+
+\PYG{c+c1}{\PYGZsh{} Guardamos la solución para la comparación posterior}
+\PYG{n}{solutions}\PYG{p}{[}\PYG{l+s+s2}{\PYGZdq{}8\PYGZus{}elements\PYGZus{}linear\PYGZdq{}}\PYG{p}{]} \PYG{o}{=} \PYG{n}{u\PYGZus{}8\PYGZus{}elements}
+
+\PYG{c+c1}{\PYGZsh{} Resolver para el caso (c) \PYGZhy{} 2 elementos finitos, interpolación cuadrática}
+\PYG{n}{n\PYGZus{}elements} \PYG{o}{=} \PYG{l+m+mi}{2}
+\PYG{n}{K\PYGZus{}quad} \PYG{o}{=} \PYG{n}{stiffness\PYGZus{}matrix\PYGZus{}quadratic}\PYG{p}{(}\PYG{n}{n\PYGZus{}elements}\PYG{p}{)}
+\PYG{n}{f\PYGZus{}quad} \PYG{o}{=} \PYG{n}{load\PYGZus{}vector\PYGZus{}quadratic}\PYG{p}{(}\PYG{n}{n\PYGZus{}elements}\PYG{p}{)}
+\PYG{n}{K\PYGZus{}quad\PYGZus{}bc}\PYG{p}{,} \PYG{n}{f\PYGZus{}quad\PYGZus{}bc} \PYG{o}{=} \PYG{n}{apply\PYGZus{}boundary\PYGZus{}conditions}\PYG{p}{(}\PYG{n}{K\PYGZus{}quad}\PYG{p}{,} \PYG{n}{f\PYGZus{}quad}\PYG{p}{)}
+
+\PYG{c+c1}{\PYGZsh{} Resolución del sistema}
+\PYG{n}{u\PYGZus{}quad\PYGZus{}2\PYGZus{}elements} \PYG{o}{=} \PYG{n}{solve}\PYG{p}{(}\PYG{n}{K\PYGZus{}quad\PYGZus{}bc}\PYG{p}{,} \PYG{n}{f\PYGZus{}quad\PYGZus{}bc}\PYG{p}{)}
+
+\PYG{c+c1}{\PYGZsh{} Graficamos la solución obtenida}
+\PYG{n}{x\PYGZus{}quad\PYGZus{}2\PYGZus{}elements} \PYG{o}{=} \PYG{n}{np}\PYG{o}{.}\PYG{n}{linspace}\PYG{p}{(}\PYG{l+m+mi}{0}\PYG{p}{,} \PYG{l+m+mi}{1}\PYG{p}{,} \PYG{l+m+mi}{2} \PYG{o}{*} \PYG{n}{n\PYGZus{}elements} \PYG{o}{+} \PYG{l+m+mi}{1}\PYG{p}{)}
+
+\PYG{c+c1}{\PYGZsh{} Guardamos la solución para la comparación posterior}
+\PYG{n}{solutions}\PYG{p}{[}\PYG{l+s+s2}{\PYGZdq{}2\PYGZus{}elements\PYGZus{}quadratic\PYGZdq{}}\PYG{p}{]} \PYG{o}{=} \PYG{n}{u\PYGZus{}quad\PYGZus{}2\PYGZus{}elements}
+
+\PYG{c+c1}{\PYGZsh{} Resolver para el caso (d) \PYGZhy{} 4 elementos finitos, interpolación cuadrática}
+\PYG{n}{n\PYGZus{}elements} \PYG{o}{=} \PYG{l+m+mi}{4}
+\PYG{n}{K\PYGZus{}quad} \PYG{o}{=} \PYG{n}{stiffness\PYGZus{}matrix\PYGZus{}quadratic}\PYG{p}{(}\PYG{n}{n\PYGZus{}elements}\PYG{p}{)}
+\PYG{n}{f\PYGZus{}quad} \PYG{o}{=} \PYG{n}{load\PYGZus{}vector\PYGZus{}quadratic}\PYG{p}{(}\PYG{n}{n\PYGZus{}elements}\PYG{p}{)}
+\PYG{n}{K\PYGZus{}quad\PYGZus{}bc}\PYG{p}{,} \PYG{n}{f\PYGZus{}quad\PYGZus{}bc} \PYG{o}{=} \PYG{n}{apply\PYGZus{}boundary\PYGZus{}conditions}\PYG{p}{(}\PYG{n}{K\PYGZus{}quad}\PYG{p}{,} \PYG{n}{f\PYGZus{}quad}\PYG{p}{)}
+
+\PYG{c+c1}{\PYGZsh{} Resolución del sistema}
+\PYG{n}{u\PYGZus{}quad\PYGZus{}4\PYGZus{}elements} \PYG{o}{=} \PYG{n}{solve}\PYG{p}{(}\PYG{n}{K\PYGZus{}quad\PYGZus{}bc}\PYG{p}{,} \PYG{n}{f\PYGZus{}quad\PYGZus{}bc}\PYG{p}{)}
+
+\PYG{c+c1}{\PYGZsh{} Graficamos la solución obtenida}
+\PYG{n}{x\PYGZus{}quad\PYGZus{}4\PYGZus{}elements} \PYG{o}{=} \PYG{n}{np}\PYG{o}{.}\PYG{n}{linspace}\PYG{p}{(}\PYG{l+m+mi}{0}\PYG{p}{,} \PYG{l+m+mi}{1}\PYG{p}{,} \PYG{l+m+mi}{2} \PYG{o}{*} \PYG{n}{n\PYGZus{}elements} \PYG{o}{+} \PYG{l+m+mi}{1}\PYG{p}{)}
+
+\PYG{c+c1}{\PYGZsh{} Guardamos la solución para la comparación posterior}
+\PYG{n}{solutions}\PYG{p}{[}\PYG{l+s+s2}{\PYGZdq{}4\PYGZus{}elements\PYGZus{}quadratic\PYGZdq{}}\PYG{p}{]} \PYG{o}{=} \PYG{n}{u\PYGZus{}quad\PYGZus{}4\PYGZus{}elements}
+
+\PYG{c+c1}{\PYGZsh{} Definir la solución analítica de la ecuación diferencial}
+\PYG{k}{def} \PYG{n+nf}{analytical\PYGZus{}solution}\PYG{p}{(}\PYG{n}{x}\PYG{p}{):}
+    \PYG{l+s+sd}{\PYGZdq{}\PYGZdq{}\PYGZdq{}Solución analítica de la ecuación diferencial\PYGZdq{}\PYGZdq{}\PYGZdq{}}
+    \PYG{k}{return} \PYG{o}{\PYGZhy{}}\PYG{n}{x}\PYG{o}{**}\PYG{l+m+mi}{2} \PYG{o}{/} \PYG{l+m+mi}{2} \PYG{o}{+} \PYG{l+m+mf}{0.5} \PYG{o}{*} \PYG{p}{(}\PYG{n}{x} \PYG{o}{+} \PYG{n}{np}\PYG{o}{.}\PYG{n}{sin}\PYG{p}{(}\PYG{n}{x}\PYG{p}{))}
+
+\PYG{c+c1}{\PYGZsh{} Definir la norma L2 para evaluar el error}
+\PYG{k}{def} \PYG{n+nf}{l2\PYGZus{}error}\PYG{p}{(}\PYG{n}{u\PYGZus{}num}\PYG{p}{,} \PYG{n}{u\PYGZus{}analytical}\PYG{p}{,} \PYG{n}{x}\PYG{p}{):}
+    \PYG{l+s+sd}{\PYGZdq{}\PYGZdq{}\PYGZdq{}Calcula el error en norma L2 entre la solución numérica y la analítica\PYGZdq{}\PYGZdq{}\PYGZdq{}}
+    \PYG{n}{error} \PYG{o}{=} \PYG{n}{np}\PYG{o}{.}\PYG{n}{sqrt}\PYG{p}{(}\PYG{n}{np}\PYG{o}{.}\PYG{n}{sum}\PYG{p}{((}\PYG{n}{u\PYGZus{}num} \PYG{o}{\PYGZhy{}} \PYG{n}{u\PYGZus{}analytical}\PYG{p}{)}\PYG{o}{**}\PYG{l+m+mi}{2} \PYG{o}{*} \PYG{n}{np}\PYG{o}{.}\PYG{n}{diff}\PYG{p}{(}\PYG{n}{x}\PYG{p}{,} \PYG{n}{append}\PYG{o}{=}\PYG{n}{x}\PYG{p}{[}\PYG{o}{\PYGZhy{}}\PYG{l+m+mi}{1}\PYG{p}{])))}
+    \PYG{k}{return} \PYG{n}{error}
+
+\PYG{c+c1}{\PYGZsh{} Crear el dominio fino para la solución analítica}
+\PYG{n}{x\PYGZus{}fine} \PYG{o}{=} \PYG{n}{np}\PYG{o}{.}\PYG{n}{linspace}\PYG{p}{(}\PYG{l+m+mi}{0}\PYG{p}{,} \PYG{l+m+mi}{1}\PYG{p}{,} \PYG{l+m+mi}{1000}\PYG{p}{)}
+\PYG{n}{u\PYGZus{}analytical} \PYG{o}{=} \PYG{n}{analytical\PYGZus{}solution}\PYG{p}{(}\PYG{n}{x\PYGZus{}fine}\PYG{p}{)}
+
+\PYG{c+c1}{\PYGZsh{} Graficar las soluciones obtenidas junto con la solución analítica}
+\PYG{n}{plt}\PYG{o}{.}\PYG{n}{figure}\PYG{p}{(}\PYG{n}{figsize}\PYG{o}{=}\PYG{p}{(}\PYG{l+m+mi}{10}\PYG{p}{,} \PYG{l+m+mi}{6}\PYG{p}{))}
+
+\PYG{c+c1}{\PYGZsh{} Solución analítica}
+\PYG{n}{plt}\PYG{o}{.}\PYG{n}{plot}\PYG{p}{(}\PYG{n}{x\PYGZus{}fine}\PYG{p}{,} \PYG{n}{u\PYGZus{}analytical}\PYG{p}{,} \PYG{n}{label}\PYG{o}{=}\PYG{l+s+s2}{\PYGZdq{}Solución Analítica\PYGZdq{}}\PYG{p}{,} \PYG{n}{linestyle}\PYG{o}{=}\PYG{l+s+s1}{\PYGZsq{}\PYGZhy{}\PYGZhy{}\PYGZsq{}}\PYG{p}{,} \PYG{n}{color}\PYG{o}{=}\PYG{l+s+s1}{\PYGZsq{}black\PYGZsq{}}\PYG{p}{)}
+
+\PYG{c+c1}{\PYGZsh{} Solución numérica con 4 elementos lineales}
+\PYG{n}{plt}\PYG{o}{.}\PYG{n}{plot}\PYG{p}{(}\PYG{n}{x}\PYG{p}{,} \PYG{n}{solutions}\PYG{p}{[}\PYG{l+s+s2}{\PYGZdq{}4\PYGZus{}elements\PYGZus{}linear\PYGZdq{}}\PYG{p}{],} \PYG{n}{label}\PYG{o}{=}\PYG{l+s+s2}{\PYGZdq{}4 elementos, lineal\PYGZdq{}}\PYG{p}{,} \PYG{n}{marker}\PYG{o}{=}\PYG{l+s+s1}{\PYGZsq{}o\PYGZsq{}}\PYG{p}{)}
+
+\PYG{c+c1}{\PYGZsh{} Solución numérica con 8 elementos lineales}
+\PYG{n}{plt}\PYG{o}{.}\PYG{n}{plot}\PYG{p}{(}\PYG{n}{x\PYGZus{}8\PYGZus{}elements}\PYG{p}{,} \PYG{n}{solutions}\PYG{p}{[}\PYG{l+s+s2}{\PYGZdq{}8\PYGZus{}elements\PYGZus{}linear\PYGZdq{}}\PYG{p}{],} \PYG{n}{label}\PYG{o}{=}\PYG{l+s+s2}{\PYGZdq{}8 elementos, lineal\PYGZdq{}}\PYG{p}{,} \PYG{n}{marker}\PYG{o}{=}\PYG{l+s+s1}{\PYGZsq{}x\PYGZsq{}}\PYG{p}{)}
+
+\PYG{c+c1}{\PYGZsh{} Solución numérica con 2 elementos cuadráticos}
+\PYG{n}{plt}\PYG{o}{.}\PYG{n}{plot}\PYG{p}{(}\PYG{n}{x\PYGZus{}quad\PYGZus{}2\PYGZus{}elements}\PYG{p}{,} \PYG{n}{solutions}\PYG{p}{[}\PYG{l+s+s2}{\PYGZdq{}2\PYGZus{}elements\PYGZus{}quadratic\PYGZdq{}}\PYG{p}{],} \PYG{n}{label}\PYG{o}{=}\PYG{l+s+s2}{\PYGZdq{}2 elementos, cuadrático\PYGZdq{}}\PYG{p}{,} \PYG{n}{marker}\PYG{o}{=}\PYG{l+s+s1}{\PYGZsq{}s\PYGZsq{}}\PYG{p}{)}
+
+\PYG{c+c1}{\PYGZsh{} Solución numérica con 4 elementos cuadráticos}
+\PYG{n}{plt}\PYG{o}{.}\PYG{n}{plot}\PYG{p}{(}\PYG{n}{x\PYGZus{}quad\PYGZus{}4\PYGZus{}elements}\PYG{p}{,} \PYG{n}{solutions}\PYG{p}{[}\PYG{l+s+s2}{\PYGZdq{}4\PYGZus{}elements\PYGZus{}quadratic\PYGZdq{}}\PYG{p}{],} \PYG{n}{label}\PYG{o}{=}\PYG{l+s+s2}{\PYGZdq{}4 elementos, cuadrático\PYGZdq{}}\PYG{p}{,} \PYG{n}{marker}\PYG{o}{=}\PYG{l+s+s1}{\PYGZsq{}d\PYGZsq{}}\PYG{p}{)}
+
+\PYG{n}{plt}\PYG{o}{.}\PYG{n}{title}\PYG{p}{(}\PYG{l+s+s2}{\PYGZdq{}Comparación de soluciones numéricas y analítica\PYGZdq{}}\PYG{p}{)}
+\PYG{n}{plt}\PYG{o}{.}\PYG{n}{xlabel}\PYG{p}{(}\PYG{l+s+s2}{\PYGZdq{}x\PYGZdq{}}\PYG{p}{)}
+\PYG{n}{plt}\PYG{o}{.}\PYG{n}{ylabel}\PYG{p}{(}\PYG{l+s+s2}{\PYGZdq{}u(x)\PYGZdq{}}\PYG{p}{)}
+\PYG{n}{plt}\PYG{o}{.}\PYG{n}{legend}\PYG{p}{()}
+\PYG{n}{plt}\PYG{o}{.}\PYG{n}{grid}\PYG{p}{(}\PYG{k+kc}{True}\PYG{p}{)}
+\PYG{n}{plt}\PYG{o}{.}\PYG{n}{show}\PYG{p}{()}
+
+\PYG{c+c1}{\PYGZsh{} Calcular errores en norma L2 para las diferentes soluciones numéricas}
+\PYG{n}{u\PYGZus{}analytical\PYGZus{}4} \PYG{o}{=} \PYG{n}{analytical\PYGZus{}solution}\PYG{p}{(}\PYG{n}{x}\PYG{p}{)}
+\PYG{n}{u\PYGZus{}analytical\PYGZus{}8} \PYG{o}{=} \PYG{n}{analytical\PYGZus{}solution}\PYG{p}{(}\PYG{n}{x\PYGZus{}8\PYGZus{}elements}\PYG{p}{)}
+\PYG{n}{u\PYGZus{}analytical\PYGZus{}quad\PYGZus{}2} \PYG{o}{=} \PYG{n}{analytical\PYGZus{}solution}\PYG{p}{(}\PYG{n}{x\PYGZus{}quad\PYGZus{}2\PYGZus{}elements}\PYG{p}{)}
+\PYG{n}{u\PYGZus{}analytical\PYGZus{}quad\PYGZus{}4} \PYG{o}{=} \PYG{n}{analytical\PYGZus{}solution}\PYG{p}{(}\PYG{n}{x\PYGZus{}quad\PYGZus{}4\PYGZus{}elements}\PYG{p}{)}
+
+
+\PYG{c+c1}{\PYGZsh{} Calcular errores}
+\PYG{n}{errors} \PYG{o}{=} \PYG{p}{\PYGZob{}}
+    \PYG{l+s+s2}{\PYGZdq{}4 elementos lineal\PYGZdq{}}\PYG{p}{:} \PYG{n}{l2\PYGZus{}error}\PYG{p}{(}\PYG{n}{solutions}\PYG{p}{[}\PYG{l+s+s2}{\PYGZdq{}4\PYGZus{}elements\PYGZus{}linear\PYGZdq{}}\PYG{p}{],} \PYG{n}{u\PYGZus{}analytical\PYGZus{}4}\PYG{p}{,} \PYG{n}{x}\PYG{p}{),}
+    \PYG{l+s+s2}{\PYGZdq{}8 elementos lineal\PYGZdq{}}\PYG{p}{:} \PYG{n}{l2\PYGZus{}error}\PYG{p}{(}\PYG{n}{solutions}\PYG{p}{[}\PYG{l+s+s2}{\PYGZdq{}8\PYGZus{}elements\PYGZus{}linear\PYGZdq{}}\PYG{p}{],} \PYG{n}{u\PYGZus{}analytical\PYGZus{}8}\PYG{p}{,} \PYG{n}{x\PYGZus{}8\PYGZus{}elements}\PYG{p}{),}
+    \PYG{l+s+s2}{\PYGZdq{}2 elementos cuadrático\PYGZdq{}}\PYG{p}{:} \PYG{n}{l2\PYGZus{}error}\PYG{p}{(}\PYG{n}{solutions}\PYG{p}{[}\PYG{l+s+s2}{\PYGZdq{}2\PYGZus{}elements\PYGZus{}quadratic\PYGZdq{}}\PYG{p}{],} \PYG{n}{u\PYGZus{}analytical\PYGZus{}quad\PYGZus{}2}\PYG{p}{,} \PYG{n}{x\PYGZus{}quad\PYGZus{}2\PYGZus{}elements}\PYG{p}{),}
+    \PYG{l+s+s2}{\PYGZdq{}4 elementos cuadrático\PYGZdq{}}\PYG{p}{:} \PYG{n}{l2\PYGZus{}error}\PYG{p}{(}\PYG{n}{solutions}\PYG{p}{[}\PYG{l+s+s2}{\PYGZdq{}4\PYGZus{}elements\PYGZus{}quadratic\PYGZdq{}}\PYG{p}{],} \PYG{n}{u\PYGZus{}analytical\PYGZus{}quad\PYGZus{}4}\PYG{p}{,} \PYG{n}{x\PYGZus{}quad\PYGZus{}4\PYGZus{}elements}\PYG{p}{),}
+\PYG{p}{\PYGZcb{}}
+
+\PYG{c+c1}{\PYGZsh{} Mostrar los errores calculados}
+\PYG{n}{error\PYGZus{}df} \PYG{o}{=} \PYG{n}{pd}\PYG{o}{.}\PYG{n}{DataFrame}\PYG{p}{(}\PYG{n+nb}{list}\PYG{p}{(}\PYG{n}{errors}\PYG{o}{.}\PYG{n}{items}\PYG{p}{()),} \PYG{n}{columns}\PYG{o}{=}\PYG{p}{[}\PYG{l+s+s2}{\PYGZdq{}Método\PYGZdq{}}\PYG{p}{,} \PYG{l+s+s2}{\PYGZdq{}Error L2\PYGZdq{}}\PYG{p}{])}
+
+\PYG{c+c1}{\PYGZsh{} Graficar los errores para un análisis visual de la convergencia}
+\PYG{n}{plt}\PYG{o}{.}\PYG{n}{figure}\PYG{p}{(}\PYG{n}{figsize}\PYG{o}{=}\PYG{p}{(}\PYG{l+m+mi}{8}\PYG{p}{,} \PYG{l+m+mi}{5}\PYG{p}{))}
+\PYG{n}{methods} \PYG{o}{=} \PYG{n+nb}{list}\PYG{p}{(}\PYG{n}{errors}\PYG{o}{.}\PYG{n}{keys}\PYG{p}{())}
+\PYG{n}{error\PYGZus{}values} \PYG{o}{=} \PYG{n+nb}{list}\PYG{p}{(}\PYG{n}{errors}\PYG{o}{.}\PYG{n}{values}\PYG{p}{())}
+\PYG{n}{plt}\PYG{o}{.}\PYG{n}{bar}\PYG{p}{(}\PYG{n}{methods}\PYG{p}{,} \PYG{n}{error\PYGZus{}values}\PYG{p}{,} \PYG{n}{color}\PYG{o}{=}\PYG{p}{[}\PYG{l+s+s1}{\PYGZsq{}blue\PYGZsq{}}\PYG{p}{,} \PYG{l+s+s1}{\PYGZsq{}orange\PYGZsq{}}\PYG{p}{,} \PYG{l+s+s1}{\PYGZsq{}green\PYGZsq{}}\PYG{p}{,} \PYG{l+s+s1}{\PYGZsq{}red\PYGZsq{}}\PYG{p}{])}
+\PYG{n}{plt}\PYG{o}{.}\PYG{n}{title}\PYG{p}{(}\PYG{l+s+s2}{\PYGZdq{}Errores L2 de los diferentes métodos\PYGZdq{}}\PYG{p}{)}
+\PYG{n}{plt}\PYG{o}{.}\PYG{n}{ylabel}\PYG{p}{(}\PYG{l+s+s2}{\PYGZdq{}Error L2\PYGZdq{}}\PYG{p}{)}
+\PYG{n}{plt}\PYG{o}{.}\PYG{n}{xticks}\PYG{p}{(}\PYG{n}{rotation}\PYG{o}{=}\PYG{l+m+mi}{45}\PYG{p}{,} \PYG{n}{ha}\PYG{o}{=}\PYG{l+s+s1}{\PYGZsq{}right\PYGZsq{}}\PYG{p}{)}
+\PYG{n}{plt}\PYG{o}{.}\PYG{n}{grid}\PYG{p}{(}\PYG{k+kc}{True}\PYG{p}{)}
+\PYG{n}{plt}\PYG{o}{.}\PYG{n}{show}\PYG{p}{()}
+
+\PYG{c+c1}{\PYGZsh{} Función para realizar el cálculo de la solución numérica y el error para diferentes números de elementos}
+\PYG{k}{def} \PYG{n+nf}{compute\PYGZus{}error\PYGZus{}convergence}\PYG{p}{(}\PYG{n}{n\PYGZus{}elements}\PYG{p}{,} \PYG{n}{interpolation\PYGZus{}type}\PYG{o}{=}\PYG{l+s+s2}{\PYGZdq{}linear\PYGZdq{}}\PYG{p}{):}
+    \PYG{k}{if} \PYG{n}{interpolation\PYGZus{}type} \PYG{o}{==} \PYG{l+s+s2}{\PYGZdq{}linear\PYGZdq{}}\PYG{p}{:}
+        \PYG{c+c1}{\PYGZsh{} Para elementos lineales}
+        \PYG{n}{K} \PYG{o}{=} \PYG{n}{stiffness\PYGZus{}matrix\PYGZus{}linear}\PYG{p}{(}\PYG{n}{n\PYGZus{}elements}\PYG{p}{)}
+        \PYG{n}{f} \PYG{o}{=} \PYG{n}{load\PYGZus{}vector\PYGZus{}linear}\PYG{p}{(}\PYG{n}{n\PYGZus{}elements}\PYG{p}{)}
+        \PYG{n}{K\PYGZus{}bc}\PYG{p}{,} \PYG{n}{f\PYGZus{}bc} \PYG{o}{=} \PYG{n}{apply\PYGZus{}boundary\PYGZus{}conditions}\PYG{p}{(}\PYG{n}{K}\PYG{p}{,} \PYG{n}{f}\PYG{p}{)}
+        \PYG{n}{u\PYGZus{}num} \PYG{o}{=} \PYG{n}{solve}\PYG{p}{(}\PYG{n}{K\PYGZus{}bc}\PYG{p}{,} \PYG{n}{f\PYGZus{}bc}\PYG{p}{)}
+        \PYG{n}{x} \PYG{o}{=} \PYG{n}{np}\PYG{o}{.}\PYG{n}{linspace}\PYG{p}{(}\PYG{l+m+mi}{0}\PYG{p}{,} \PYG{l+m+mi}{1}\PYG{p}{,} \PYG{n}{n\PYGZus{}elements} \PYG{o}{+} \PYG{l+m+mi}{1}\PYG{p}{)}
+    \PYG{k}{elif} \PYG{n}{interpolation\PYGZus{}type} \PYG{o}{==} \PYG{l+s+s2}{\PYGZdq{}quadratic\PYGZdq{}}\PYG{p}{:}
+        \PYG{c+c1}{\PYGZsh{} Para elementos cuadráticos}
+        \PYG{n}{K} \PYG{o}{=} \PYG{n}{stiffness\PYGZus{}matrix\PYGZus{}quadratic}\PYG{p}{(}\PYG{n}{n\PYGZus{}elements}\PYG{p}{)}
+        \PYG{n}{f} \PYG{o}{=} \PYG{n}{load\PYGZus{}vector\PYGZus{}quadratic}\PYG{p}{(}\PYG{n}{n\PYGZus{}elements}\PYG{p}{)}
+        \PYG{n}{K\PYGZus{}bc}\PYG{p}{,} \PYG{n}{f\PYGZus{}bc} \PYG{o}{=} \PYG{n}{apply\PYGZus{}boundary\PYGZus{}conditions}\PYG{p}{(}\PYG{n}{K}\PYG{p}{,} \PYG{n}{f}\PYG{p}{)}
+        \PYG{n}{u\PYGZus{}num} \PYG{o}{=} \PYG{n}{solve}\PYG{p}{(}\PYG{n}{K\PYGZus{}bc}\PYG{p}{,} \PYG{n}{f\PYGZus{}bc}\PYG{p}{)}
+        \PYG{n}{x} \PYG{o}{=} \PYG{n}{np}\PYG{o}{.}\PYG{n}{linspace}\PYG{p}{(}\PYG{l+m+mi}{0}\PYG{p}{,} \PYG{l+m+mi}{1}\PYG{p}{,} \PYG{l+m+mi}{2} \PYG{o}{*} \PYG{n}{n\PYGZus{}elements} \PYG{o}{+} \PYG{l+m+mi}{1}\PYG{p}{)}
+
+    \PYG{c+c1}{\PYGZsh{} Solución analítica en los puntos correspondientes}
+    \PYG{n}{u\PYGZus{}analytical} \PYG{o}{=} \PYG{n}{analytical\PYGZus{}solution}\PYG{p}{(}\PYG{n}{x}\PYG{p}{)}
+
+    \PYG{c+c1}{\PYGZsh{} Cálculo del error L2}
+    \PYG{n}{error} \PYG{o}{=} \PYG{n}{l2\PYGZus{}error}\PYG{p}{(}\PYG{n}{u\PYGZus{}num}\PYG{p}{,} \PYG{n}{u\PYGZus{}analytical}\PYG{p}{,} \PYG{n}{x}\PYG{p}{)}
+
+    \PYG{k}{return} \PYG{n}{error}
+
+\PYG{c+c1}{\PYGZsh{} Número de elementos a probar para el estudio de convergencia}
+\PYG{n}{element\PYGZus{}counts} \PYG{o}{=} \PYG{p}{[}\PYG{l+m+mi}{2}\PYG{p}{,} \PYG{l+m+mi}{4}\PYG{p}{,} \PYG{l+m+mi}{8}\PYG{p}{,} \PYG{l+m+mi}{16}\PYG{p}{,} \PYG{l+m+mi}{32}\PYG{p}{]}
+\PYG{n}{errors\PYGZus{}linear} \PYG{o}{=} \PYG{p}{[]}
+\PYG{n}{errors\PYGZus{}quadratic} \PYG{o}{=} \PYG{p}{[]}
+
+\PYG{c+c1}{\PYGZsh{} Calcular errores para interpolaciones lineales y cuadráticas}
+\PYG{k}{for} \PYG{n}{n\PYGZus{}elements} \PYG{o+ow}{in} \PYG{n}{element\PYGZus{}counts}\PYG{p}{:}
+    \PYG{n}{error\PYGZus{}linear} \PYG{o}{=} \PYG{n}{compute\PYGZus{}error\PYGZus{}convergence}\PYG{p}{(}\PYG{n}{n\PYGZus{}elements}\PYG{p}{,} \PYG{n}{interpolation\PYGZus{}type}\PYG{o}{=}\PYG{l+s+s2}{\PYGZdq{}linear\PYGZdq{}}\PYG{p}{)}
+    \PYG{n}{error\PYGZus{}quadratic} \PYG{o}{=} \PYG{n}{compute\PYGZus{}error\PYGZus{}convergence}\PYG{p}{(}\PYG{n}{n\PYGZus{}elements}\PYG{p}{,} \PYG{n}{interpolation\PYGZus{}type}\PYG{o}{=}\PYG{l+s+s2}{\PYGZdq{}quadratic\PYGZdq{}}\PYG{p}{)}
+    \PYG{n}{errors\PYGZus{}linear}\PYG{o}{.}\PYG{n}{append}\PYG{p}{(}\PYG{n}{error\PYGZus{}linear}\PYG{p}{)}
+    \PYG{n}{errors\PYGZus{}quadratic}\PYG{o}{.}\PYG{n}{append}\PYG{p}{(}\PYG{n}{error\PYGZus{}quadratic}\PYG{p}{)}
+
+\PYG{c+c1}{\PYGZsh{} Graficar la convergencia en un gráfico log\PYGZhy{}log}
+\PYG{n}{plt}\PYG{o}{.}\PYG{n}{figure}\PYG{p}{(}\PYG{n}{figsize}\PYG{o}{=}\PYG{p}{(}\PYG{l+m+mi}{8}\PYG{p}{,} \PYG{l+m+mi}{6}\PYG{p}{))}
+\PYG{n}{plt}\PYG{o}{.}\PYG{n}{loglog}\PYG{p}{(}\PYG{n}{element\PYGZus{}counts}\PYG{p}{,} \PYG{n}{errors\PYGZus{}linear}\PYG{p}{,} \PYG{n}{label}\PYG{o}{=}\PYG{l+s+s2}{\PYGZdq{}Interpolación lineal\PYGZdq{}}\PYG{p}{,} \PYG{n}{marker}\PYG{o}{=}\PYG{l+s+s1}{\PYGZsq{}o\PYGZsq{}}\PYG{p}{)}
+\PYG{n}{plt}\PYG{o}{.}\PYG{n}{loglog}\PYG{p}{(}\PYG{n}{element\PYGZus{}counts}\PYG{p}{,} \PYG{n}{errors\PYGZus{}quadratic}\PYG{p}{,} \PYG{n}{label}\PYG{o}{=}\PYG{l+s+s2}{\PYGZdq{}Interpolación cuadrática\PYGZdq{}}\PYG{p}{,} \PYG{n}{marker}\PYG{o}{=}\PYG{l+s+s1}{\PYGZsq{}s\PYGZsq{}}\PYG{p}{)}
+\PYG{n}{plt}\PYG{o}{.}\PYG{n}{xlabel}\PYG{p}{(}\PYG{l+s+s2}{\PYGZdq{}Número de elementos\PYGZdq{}}\PYG{p}{)}
+\PYG{n}{plt}\PYG{o}{.}\PYG{n}{ylabel}\PYG{p}{(}\PYG{l+s+s2}{\PYGZdq{}Error L2\PYGZdq{}}\PYG{p}{)}
+\PYG{n}{plt}\PYG{o}{.}\PYG{n}{title}\PYG{p}{(}\PYG{l+s+s2}{\PYGZdq{}Estudio de convergencia\PYGZdq{}}\PYG{p}{)}
+\PYG{n}{plt}\PYG{o}{.}\PYG{n}{legend}\PYG{p}{()}
+\PYG{n}{plt}\PYG{o}{.}\PYG{n}{grid}\PYG{p}{(}\PYG{k+kc}{True}\PYG{p}{,} \PYG{n}{which}\PYG{o}{=}\PYG{l+s+s2}{\PYGZdq{}both\PYGZdq{}}\PYG{p}{,} \PYG{n}{ls}\PYG{o}{=}\PYG{l+s+s2}{\PYGZdq{}\PYGZhy{}\PYGZhy{}\PYGZdq{}}\PYG{p}{)}
+\PYG{n}{plt}\PYG{o}{.}\PYG{n}{show}\PYG{p}{()}
+
+
+
+
+\end{Verbatim}

@@ -1,0 +1,52 @@
+\begin{Verbatim}[commandchars=\\\{\}]
+
+    \PYG{k}{def} \PYG{n+nf}{resolver\PYGZus{}onda\PYGZus{}hiperbolica}\PYG{p}{(}\PYG{n}{Nx}\PYG{p}{:} \PYG{n+nb}{int}\PYG{p}{,} \PYG{n}{Nt}\PYG{p}{:} \PYG{n+nb}{int}\PYG{p}{,} \PYG{n}{L}\PYG{p}{:} \PYG{n+nb}{float}\PYG{p}{,} \PYG{n}{T}\PYG{p}{:} \PYG{n+nb}{float}\PYG{p}{,} \PYG{n}{tolerancia}\PYG{p}{:} \PYG{n+nb}{float} \PYG{o}{=} \PYG{l+m+mf}{1e\PYGZhy{}6}\PYG{p}{):}
+        \PYG{c+c1}{\PYGZsh{} Parámetros de discretización.}
+        \PYG{n}{dx} \PYG{o}{=} \PYG{n}{L} \PYG{o}{/} \PYG{n}{Nx}
+        \PYG{n}{dt} \PYG{o}{=} \PYG{n}{T} \PYG{o}{/} \PYG{n}{Nt}
+        \PYG{n}{x} \PYG{o}{=} \PYG{n}{np}\PYG{o}{.}\PYG{n}{linspace}\PYG{p}{(}\PYG{l+m+mi}{0}\PYG{p}{,} \PYG{n}{L}\PYG{p}{,} \PYG{n}{Nx} \PYG{o}{+} \PYG{l+m+mi}{1}\PYG{p}{)}
+        \PYG{n}{t} \PYG{o}{=} \PYG{n}{np}\PYG{o}{.}\PYG{n}{linspace}\PYG{p}{(}\PYG{l+m+mi}{0}\PYG{p}{,} \PYG{n}{T}\PYG{p}{,} \PYG{n}{Nt} \PYG{o}{+} \PYG{l+m+mi}{1}\PYG{p}{)}
+        \PYG{n}{sigma} \PYG{o}{=} \PYG{p}{(}\PYG{n}{dt} \PYG{o}{/} \PYG{n}{dx}\PYG{p}{)} \PYG{o}{**} \PYG{l+m+mi}{2}
+
+        \PYG{c+c1}{\PYGZsh{} Inicializar la matriz de soluciones.}
+        \PYG{n}{u} \PYG{o}{=} \PYG{n}{np}\PYG{o}{.}\PYG{n}{zeros}\PYG{p}{((}\PYG{n}{Nt} \PYG{o}{+} \PYG{l+m+mi}{1}\PYG{p}{,} \PYG{n}{Nx} \PYG{o}{+} \PYG{l+m+mi}{1}\PYG{p}{))}
+
+        \PYG{c+c1}{\PYGZsh{} Condición inicial u(x, 0) = x(1 \PYGZhy{} x).}
+        \PYG{n}{u}\PYG{p}{[}\PYG{l+m+mi}{0}\PYG{p}{,} \PYG{p}{:]} \PYG{o}{=} \PYG{n}{x} \PYG{o}{*} \PYG{p}{(}\PYG{l+m+mi}{1} \PYG{o}{\PYGZhy{}} \PYG{n}{x}\PYG{p}{)}
+
+        \PYG{c+c1}{\PYGZsh{} Condición inicial de la derivada temporal es cero.}
+        \PYG{c+c1}{\PYGZsh{} Calculamos u[1, :] usando la aproximación:}
+        \PYG{k}{for} \PYG{n}{i} \PYG{o+ow}{in} \PYG{n+nb}{range}\PYG{p}{(}\PYG{l+m+mi}{1}\PYG{p}{,} \PYG{n}{Nx}\PYG{p}{):}
+            \PYG{n}{u}\PYG{p}{[}\PYG{l+m+mi}{1}\PYG{p}{,} \PYG{n}{i}\PYG{p}{]} \PYG{o}{=} \PYG{n}{u}\PYG{p}{[}\PYG{l+m+mi}{0}\PYG{p}{,} \PYG{n}{i}\PYG{p}{]} \PYG{o}{+} \PYG{l+m+mf}{0.5} \PYG{o}{*} \PYG{n}{sigma} \PYG{o}{*} \PYG{p}{(}
+                \PYG{n}{u}\PYG{p}{[}\PYG{l+m+mi}{0}\PYG{p}{,} \PYG{n}{i}\PYG{o}{+}\PYG{l+m+mi}{1}\PYG{p}{]} \PYG{o}{\PYGZhy{}} \PYG{l+m+mi}{2}\PYG{o}{*}\PYG{n}{u}\PYG{p}{[}\PYG{l+m+mi}{0}\PYG{p}{,} \PYG{n}{i}\PYG{p}{]} \PYG{o}{+} \PYG{n}{u}\PYG{p}{[}\PYG{l+m+mi}{0}\PYG{p}{,} \PYG{n}{i}\PYG{o}{\PYGZhy{}}\PYG{l+m+mi}{1}\PYG{p}{]} \PYG{o}{+} \PYG{n}{dx}\PYG{o}{**}\PYG{l+m+mi}{2} \PYG{o}{*} \PYG{p}{(}\PYG{l+m+mi}{1} \PYG{o}{\PYGZhy{}} \PYG{n}{x}\PYG{p}{[}\PYG{n}{i}\PYG{p}{]}\PYG{o}{**}\PYG{l+m+mi}{2}\PYG{p}{)}
+            \PYG{p}{)}
+
+        \PYG{c+c1}{\PYGZsh{} Aplicar condiciones de frontera.}
+        \PYG{n}{u}\PYG{p}{[:,} \PYG{l+m+mi}{0}\PYG{p}{]} \PYG{o}{=} \PYG{l+m+mi}{0}  \PYG{c+c1}{\PYGZsh{} u(0, t) = 0}
+        \PYG{n}{u}\PYG{p}{[:,} \PYG{n}{Nx}\PYG{p}{]} \PYG{o}{=} \PYG{l+m+mi}{0}  \PYG{c+c1}{\PYGZsh{} Suponiendo u(L, t) = 0}
+
+        \PYG{c+c1}{\PYGZsh{} Bucle de tiempo con criterio de convergencia.}
+        \PYG{k}{for} \PYG{n}{n} \PYG{o+ow}{in} \PYG{n+nb}{range}\PYG{p}{(}\PYG{l+m+mi}{1}\PYG{p}{,} \PYG{n}{Nt}\PYG{p}{):}
+            \PYG{n}{u\PYGZus{}old} \PYG{o}{=} \PYG{n}{u}\PYG{p}{[}\PYG{n}{n}\PYG{p}{,} \PYG{p}{:]}\PYG{o}{.}\PYG{n}{copy}\PYG{p}{()}  \PYG{c+c1}{\PYGZsh{} Copiar la solución anterior.}
+
+            \PYG{c+c1}{\PYGZsh{} Actualizar solución en el paso n+1}
+            \PYG{k}{for} \PYG{n}{i} \PYG{o+ow}{in} \PYG{n+nb}{range}\PYG{p}{(}\PYG{l+m+mi}{1}\PYG{p}{,} \PYG{n}{Nx}\PYG{p}{):}
+                \PYG{n}{u}\PYG{p}{[}\PYG{n}{n}\PYG{o}{+}\PYG{l+m+mi}{1}\PYG{p}{,} \PYG{n}{i}\PYG{p}{]} \PYG{o}{=} \PYG{p}{(}
+                    \PYG{l+m+mi}{2}\PYG{o}{*}\PYG{n}{u}\PYG{p}{[}\PYG{n}{n}\PYG{p}{,} \PYG{n}{i}\PYG{p}{]} \PYG{o}{\PYGZhy{}} \PYG{n}{u}\PYG{p}{[}\PYG{n}{n}\PYG{o}{\PYGZhy{}}\PYG{l+m+mi}{1}\PYG{p}{,} \PYG{n}{i}\PYG{p}{]} \PYG{o}{+} \PYG{n}{sigma} \PYG{o}{*} \PYG{p}{(}
+                        \PYG{n}{u}\PYG{p}{[}\PYG{n}{n}\PYG{p}{,} \PYG{n}{i}\PYG{o}{+}\PYG{l+m+mi}{1}\PYG{p}{]} \PYG{o}{\PYGZhy{}} \PYG{l+m+mi}{2}\PYG{o}{*}\PYG{n}{u}\PYG{p}{[}\PYG{n}{n}\PYG{p}{,} \PYG{n}{i}\PYG{p}{]} \PYG{o}{+} \PYG{n}{u}\PYG{p}{[}\PYG{n}{n}\PYG{p}{,} \PYG{n}{i}\PYG{o}{\PYGZhy{}}\PYG{l+m+mi}{1}\PYG{p}{]} \PYG{o}{+} \PYG{n}{dx}\PYG{o}{**}\PYG{l+m+mi}{2} \PYG{o}{*} \PYG{p}{(}\PYG{l+m+mi}{1} \PYG{o}{\PYGZhy{}} \PYG{n}{x}\PYG{p}{[}\PYG{n}{i}\PYG{p}{]}\PYG{o}{**}\PYG{l+m+mi}{2}\PYG{p}{)}
+                    \PYG{p}{)}
+                \PYG{p}{)}
+
+            \PYG{c+c1}{\PYGZsh{} Aplicar condiciones de frontera.}
+            \PYG{n}{u}\PYG{p}{[}\PYG{n}{n}\PYG{o}{+}\PYG{l+m+mi}{1}\PYG{p}{,} \PYG{l+m+mi}{0}\PYG{p}{]} \PYG{o}{=} \PYG{l+m+mi}{0}
+            \PYG{n}{u}\PYG{p}{[}\PYG{n}{n}\PYG{o}{+}\PYG{l+m+mi}{1}\PYG{p}{,} \PYG{n}{Nx}\PYG{p}{]} \PYG{o}{=} \PYG{l+m+mi}{0}
+
+            \PYG{c+c1}{\PYGZsh{} Verificar criterio de convergencia.}
+            \PYG{n}{max\PYGZus{}delta} \PYG{o}{=} \PYG{n}{np}\PYG{o}{.}\PYG{n}{max}\PYG{p}{(}\PYG{n}{np}\PYG{o}{.}\PYG{n}{abs}\PYG{p}{(}\PYG{n}{u}\PYG{p}{[}\PYG{n}{n}\PYG{o}{+}\PYG{l+m+mi}{1}\PYG{p}{,} \PYG{p}{:]} \PYG{o}{\PYGZhy{}} \PYG{n}{u\PYGZus{}old}\PYG{p}{))}
+            \PYG{k}{if} \PYG{n}{max\PYGZus{}delta} \PYG{o}{\PYGZlt{}} \PYG{n}{tolerancia}\PYG{p}{:}
+                \PYG{n}{informer}\PYG{o}{.}\PYG{n}{info}\PYG{p}{(}\PYG{l+s+sa}{f}\PYG{l+s+s1}{\PYGZsq{}Convergencia alcanzada en el paso temporal n=}\PYG{l+s+si}{\PYGZob{}}\PYG{n}{n}\PYG{l+s+si}{\PYGZcb{}}\PYG{l+s+s1}{ con delta máximo=}\PYG{l+s+si}{\PYGZob{}}\PYG{n}{max\PYGZus{}delta}\PYG{l+s+si}{:}\PYG{l+s+s1}{.2e}\PYG{l+s+si}{\PYGZcb{}}\PYG{l+s+s1}{\PYGZsq{}}\PYG{p}{)}
+                \PYG{k}{break}
+
+        \PYG{k}{return} \PYG{n}{x}\PYG{p}{,} \PYG{n}{t}\PYG{p}{[:}\PYG{n}{n}\PYG{o}{+}\PYG{l+m+mi}{2}\PYG{p}{],} \PYG{n}{u}\PYG{p}{[:}\PYG{n}{n}\PYG{o}{+}\PYG{l+m+mi}{2}\PYG{p}{,} \PYG{p}{:]}  \PYG{c+c1}{\PYGZsh{} Devolver solo hasta el paso convergente}
+
+\end{Verbatim}

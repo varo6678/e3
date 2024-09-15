@@ -1,0 +1,239 @@
+\begin{Verbatim}[commandchars=\\\{\}]
+
+\PYG{c+c1}{\PYGZsh{} .}
+
+\PYG{c+c1}{\PYGZsh{} Imports necesarios}
+\PYG{k+kn}{import} \PYG{n+nn}{numpy} \PYG{k}{as} \PYG{n+nn}{np}
+\PYG{k+kn}{import} \PYG{n+nn}{matplotlib.pyplot} \PYG{k}{as} \PYG{n+nn}{plt}
+\PYG{k+kn}{import} \PYG{n+nn}{pandas} \PYG{k}{as} \PYG{n+nn}{pd}
+\PYG{k+kn}{from} \PYG{n+nn}{pathlib} \PYG{k+kn}{import} \PYG{n}{Path}
+\PYG{k+kn}{import} \PYG{n+nn}{logging}
+\PYG{k+kn}{import} \PYG{n+nn}{argparse}
+
+\PYG{c+c1}{\PYGZsh{} Configuración del logger}
+\PYG{k}{def} \PYG{n+nf}{define\PYGZus{}logger}\PYG{p}{(}\PYG{n}{logger\PYGZus{}name}\PYG{o}{=}\PYG{l+s+s1}{\PYGZsq{}mna\PYGZsq{}}\PYG{p}{,} \PYG{n}{logger\PYGZus{}level}\PYG{o}{=}\PYG{l+s+s1}{\PYGZsq{}INFO\PYGZsq{}}\PYG{p}{):}
+    \PYG{n}{logger} \PYG{o}{=} \PYG{n}{logging}\PYG{o}{.}\PYG{n}{getLogger}\PYG{p}{(}\PYG{n}{logger\PYGZus{}name}\PYG{p}{)}
+    \PYG{n}{logger}\PYG{o}{.}\PYG{n}{setLevel}\PYG{p}{(}\PYG{n}{logger\PYGZus{}level}\PYG{p}{)}
+    \PYG{n}{ch} \PYG{o}{=} \PYG{n}{logging}\PYG{o}{.}\PYG{n}{StreamHandler}\PYG{p}{()}
+    \PYG{n}{ch}\PYG{o}{.}\PYG{n}{setLevel}\PYG{p}{(}\PYG{n}{logger\PYGZus{}level}\PYG{p}{)}
+    \PYG{n}{formatter} \PYG{o}{=} \PYG{n}{logging}\PYG{o}{.}\PYG{n}{Formatter}\PYG{p}{(}\PYG{l+s+s1}{\PYGZsq{}}\PYG{l+s+si}{\PYGZpc{}(asctime)s}\PYG{l+s+s1}{ \PYGZhy{} }\PYG{l+s+si}{\PYGZpc{}(name)s}\PYG{l+s+s1}{ \PYGZhy{} }\PYG{l+s+si}{\PYGZpc{}(levelname)s}\PYG{l+s+s1}{ \PYGZhy{} }\PYG{l+s+si}{\PYGZpc{}(message)s}\PYG{l+s+s1}{\PYGZsq{}}\PYG{p}{)}
+    \PYG{n}{ch}\PYG{o}{.}\PYG{n}{setFormatter}\PYG{p}{(}\PYG{n}{formatter}\PYG{p}{)}
+    \PYG{n}{logger}\PYG{o}{.}\PYG{n}{addHandler}\PYG{p}{(}\PYG{n}{ch}\PYG{p}{)}
+    \PYG{k}{return} \PYG{n}{logger}
+
+\PYG{n}{informer} \PYG{o}{=} \PYG{n}{define\PYGZus{}logger}\PYG{p}{(}\PYG{n}{logger\PYGZus{}name}\PYG{o}{=}\PYG{l+s+s1}{\PYGZsq{}mna\PYGZsq{}}\PYG{p}{,} \PYG{n}{logger\PYGZus{}level}\PYG{o}{=}\PYG{l+s+s1}{\PYGZsq{}INFO\PYGZsq{}}\PYG{p}{)}
+
+\PYG{k}{def} \PYG{n+nf}{resolver\PYGZus{}laplace\PYGZus{}polar}\PYG{p}{(}\PYG{n}{Nr}\PYG{p}{,} \PYG{n}{Ntheta}\PYG{p}{,} \PYG{n}{R}\PYG{p}{,} \PYG{n}{T0}\PYG{p}{,} \PYG{n}{T1}\PYG{p}{,} \PYG{n}{tolerancia}\PYG{o}{=}\PYG{l+m+mf}{1e\PYGZhy{}6}\PYG{p}{,} \PYG{n}{max\PYGZus{}iter}\PYG{o}{=}\PYG{l+m+mi}{10000}\PYG{p}{,} \PYG{n}{omega}\PYG{o}{=}\PYG{l+m+mf}{1.0}\PYG{p}{):}
+    \PYG{c+c1}{\PYGZsh{} Crear la malla}
+    \PYG{n}{dr} \PYG{o}{=} \PYG{n}{R} \PYG{o}{/} \PYG{p}{(}\PYG{n}{Nr} \PYG{o}{\PYGZhy{}} \PYG{l+m+mi}{1}\PYG{p}{)}
+    \PYG{n}{dtheta} \PYG{o}{=} \PYG{n}{np}\PYG{o}{.}\PYG{n}{pi} \PYG{o}{/} \PYG{p}{(}\PYG{n}{Ntheta} \PYG{o}{\PYGZhy{}} \PYG{l+m+mi}{1}\PYG{p}{)}
+    \PYG{n}{r} \PYG{o}{=} \PYG{n}{np}\PYG{o}{.}\PYG{n}{linspace}\PYG{p}{(}\PYG{l+m+mi}{0}\PYG{p}{,} \PYG{n}{R}\PYG{p}{,} \PYG{n}{Nr}\PYG{p}{)}
+    \PYG{n}{theta} \PYG{o}{=} \PYG{n}{np}\PYG{o}{.}\PYG{n}{linspace}\PYG{p}{(}\PYG{l+m+mi}{0}\PYG{p}{,} \PYG{n}{np}\PYG{o}{.}\PYG{n}{pi}\PYG{p}{,} \PYG{n}{Ntheta}\PYG{p}{)}
+    \PYG{n}{R\PYGZus{}grid}\PYG{p}{,} \PYG{n}{Theta\PYGZus{}grid} \PYG{o}{=} \PYG{n}{np}\PYG{o}{.}\PYG{n}{meshgrid}\PYG{p}{(}\PYG{n}{r}\PYG{p}{,} \PYG{n}{theta}\PYG{p}{,} \PYG{n}{indexing}\PYG{o}{=}\PYG{l+s+s1}{\PYGZsq{}ij\PYGZsq{}}\PYG{p}{)}
+
+    \PYG{c+c1}{\PYGZsh{} Inicializar la matriz de temperaturas}
+    \PYG{n}{u} \PYG{o}{=} \PYG{n}{np}\PYG{o}{.}\PYG{n}{zeros}\PYG{p}{((}\PYG{n}{Nr}\PYG{p}{,} \PYG{n}{Ntheta}\PYG{p}{))}
+
+    \PYG{c+c1}{\PYGZsh{} Condiciones de frontera}
+    \PYG{n}{u}\PYG{p}{[}\PYG{o}{\PYGZhy{}}\PYG{l+m+mi}{1}\PYG{p}{,} \PYG{p}{:]} \PYG{o}{=} \PYG{n}{T1}  \PYG{c+c1}{\PYGZsh{} Borde circular (r = R)}
+    \PYG{n}{u}\PYG{p}{[:,} \PYG{l+m+mi}{0}\PYG{p}{]} \PYG{o}{=} \PYG{n}{T0}   \PYG{c+c1}{\PYGZsh{} Diámetro (theta = 0)}
+    \PYG{n}{u}\PYG{p}{[:,} \PYG{o}{\PYGZhy{}}\PYG{l+m+mi}{1}\PYG{p}{]} \PYG{o}{=} \PYG{n}{T0}  \PYG{c+c1}{\PYGZsh{} Diámetro (theta = pi)}
+
+    \PYG{c+c1}{\PYGZsh{} Iteraciones}
+    \PYG{n}{convergencia} \PYG{o}{=} \PYG{k+kc}{False}
+    \PYG{n}{iter\PYGZus{}count} \PYG{o}{=} \PYG{l+m+mi}{0}
+
+    \PYG{k}{while} \PYG{o+ow}{not} \PYG{n}{convergencia} \PYG{o+ow}{and} \PYG{n}{iter\PYGZus{}count} \PYG{o}{\PYGZlt{}} \PYG{n}{max\PYGZus{}iter}\PYG{p}{:}
+        \PYG{n}{u\PYGZus{}old} \PYG{o}{=} \PYG{n}{u}\PYG{o}{.}\PYG{n}{copy}\PYG{p}{()}
+        \PYG{n}{iter\PYGZus{}count} \PYG{o}{+=} \PYG{l+m+mi}{1}
+
+        \PYG{k}{for} \PYG{n}{i} \PYG{o+ow}{in} \PYG{n+nb}{range}\PYG{p}{(}\PYG{l+m+mi}{1}\PYG{p}{,} \PYG{n}{Nr} \PYG{o}{\PYGZhy{}} \PYG{l+m+mi}{1}\PYG{p}{):}
+            \PYG{n}{r\PYGZus{}i} \PYG{o}{=} \PYG{n}{r}\PYG{p}{[}\PYG{n}{i}\PYG{p}{]}
+            \PYG{k}{if} \PYG{n}{r\PYGZus{}i} \PYG{o}{==} \PYG{l+m+mi}{0}\PYG{p}{:}
+                \PYG{k}{continue}  \PYG{c+c1}{\PYGZsh{} Evitar división por cero}
+            \PYG{n}{beta} \PYG{o}{=} \PYG{p}{(}\PYG{n}{r\PYGZus{}i} \PYG{o}{*} \PYG{n}{dtheta} \PYG{o}{/} \PYG{n}{dr}\PYG{p}{)} \PYG{o}{**} \PYG{l+m+mi}{2}
+            \PYG{n}{denom} \PYG{o}{=} \PYG{l+m+mi}{2} \PYG{o}{*} \PYG{p}{(}\PYG{l+m+mi}{1} \PYG{o}{+} \PYG{n}{beta}\PYG{p}{)}
+            \PYG{k}{for} \PYG{n}{j} \PYG{o+ow}{in} \PYG{n+nb}{range}\PYG{p}{(}\PYG{l+m+mi}{1}\PYG{p}{,} \PYG{n}{Ntheta} \PYG{o}{\PYGZhy{}} \PYG{l+m+mi}{1}\PYG{p}{):}
+                \PYG{n}{u\PYGZus{}new} \PYG{o}{=} \PYG{p}{(}\PYG{l+m+mi}{1} \PYG{o}{/} \PYG{n}{denom}\PYG{p}{)} \PYG{o}{*} \PYG{p}{(}\PYG{n}{u}\PYG{p}{[}\PYG{n}{i}\PYG{o}{+}\PYG{l+m+mi}{1}\PYG{p}{,} \PYG{n}{j}\PYG{p}{]} \PYG{o}{+} \PYG{n}{u}\PYG{p}{[}\PYG{n}{i}\PYG{o}{\PYGZhy{}}\PYG{l+m+mi}{1}\PYG{p}{,} \PYG{n}{j}\PYG{p}{]} \PYG{o}{+} \PYG{n}{beta} \PYG{o}{*} \PYG{p}{(}\PYG{n}{u}\PYG{p}{[}\PYG{n}{i}\PYG{p}{,} \PYG{n}{j}\PYG{o}{+}\PYG{l+m+mi}{1}\PYG{p}{]} \PYG{o}{+} \PYG{n}{u}\PYG{p}{[}\PYG{n}{i}\PYG{p}{,} \PYG{n}{j}\PYG{o}{\PYGZhy{}}\PYG{l+m+mi}{1}\PYG{p}{]))}
+                \PYG{n}{u}\PYG{p}{[}\PYG{n}{i}\PYG{p}{,} \PYG{n}{j}\PYG{p}{]} \PYG{o}{=} \PYG{n}{u}\PYG{p}{[}\PYG{n}{i}\PYG{p}{,} \PYG{n}{j}\PYG{p}{]} \PYG{o}{+} \PYG{n}{omega} \PYG{o}{*} \PYG{p}{(}\PYG{n}{u\PYGZus{}new} \PYG{o}{\PYGZhy{}} \PYG{n}{u}\PYG{p}{[}\PYG{n}{i}\PYG{p}{,} \PYG{n}{j}\PYG{p}{])}
+
+        \PYG{c+c1}{\PYGZsh{} Manejar el centro (r = 0)}
+        \PYG{n}{u}\PYG{p}{[}\PYG{l+m+mi}{0}\PYG{p}{,} \PYG{p}{:]} \PYG{o}{=} \PYG{n}{np}\PYG{o}{.}\PYG{n}{mean}\PYG{p}{(}\PYG{n}{u}\PYG{p}{[}\PYG{l+m+mi}{1}\PYG{p}{,} \PYG{p}{:])}  \PYG{c+c1}{\PYGZsh{} Asumir simetría radial}
+
+        \PYG{c+c1}{\PYGZsh{} Verificar convergencia}
+        \PYG{n}{max\PYGZus{}diff} \PYG{o}{=} \PYG{n}{np}\PYG{o}{.}\PYG{n}{max}\PYG{p}{(}\PYG{n}{np}\PYG{o}{.}\PYG{n}{abs}\PYG{p}{(}\PYG{n}{u} \PYG{o}{\PYGZhy{}} \PYG{n}{u\PYGZus{}old}\PYG{p}{))}
+        \PYG{k}{if} \PYG{n}{max\PYGZus{}diff} \PYG{o}{\PYGZlt{}} \PYG{n}{tolerancia}\PYG{p}{:}
+            \PYG{n}{convergencia} \PYG{o}{=} \PYG{k+kc}{True}
+            \PYG{n}{informer}\PYG{o}{.}\PYG{n}{info}\PYG{p}{(}\PYG{l+s+sa}{f}\PYG{l+s+s1}{\PYGZsq{}Convergencia alcanzada en }\PYG{l+s+si}{\PYGZob{}}\PYG{n}{iter\PYGZus{}count}\PYG{l+s+si}{\PYGZcb{}}\PYG{l+s+s1}{ iteraciones con diferencia máxima }\PYG{l+s+si}{\PYGZob{}}\PYG{n}{max\PYGZus{}diff}\PYG{l+s+si}{:}\PYG{l+s+s1}{.2e}\PYG{l+s+si}{\PYGZcb{}}\PYG{l+s+s1}{\PYGZsq{}}\PYG{p}{)}
+
+    \PYG{k}{if} \PYG{o+ow}{not} \PYG{n}{convergencia}\PYG{p}{:}
+        \PYG{n}{informer}\PYG{o}{.}\PYG{n}{warning}\PYG{p}{(}\PYG{l+s+sa}{f}\PYG{l+s+s1}{\PYGZsq{}No se alcanzó la convergencia después de }\PYG{l+s+si}{\PYGZob{}}\PYG{n}{max\PYGZus{}iter}\PYG{l+s+si}{\PYGZcb{}}\PYG{l+s+s1}{ iteraciones\PYGZsq{}}\PYG{p}{)}
+
+    \PYG{k}{return} \PYG{n}{r}\PYG{p}{,} \PYG{n}{theta}\PYG{p}{,} \PYG{n}{u}
+
+\PYG{c+c1}{\PYGZsh{} Función para resolver la ecuación de Laplace en coordenadas cartesianas}
+\PYG{k}{def} \PYG{n+nf}{resolver\PYGZus{}laplace\PYGZus{}cartesiano}\PYG{p}{(}\PYG{n}{Nx}\PYG{p}{,} \PYG{n}{Ny}\PYG{p}{,} \PYG{n}{R}\PYG{p}{,} \PYG{n}{T0}\PYG{p}{,} \PYG{n}{T1}\PYG{p}{,} \PYG{n}{tolerancia}\PYG{o}{=}\PYG{l+m+mf}{1e\PYGZhy{}6}\PYG{p}{,} \PYG{n}{max\PYGZus{}iter}\PYG{o}{=}\PYG{l+m+mi}{10000}\PYG{p}{,} \PYG{n}{omega}\PYG{o}{=}\PYG{l+m+mf}{1.0}\PYG{p}{):}
+    \PYG{c+c1}{\PYGZsh{} Crear la malla}
+    \PYG{n}{dx} \PYG{o}{=} \PYG{n}{R} \PYG{o}{/} \PYG{p}{(}\PYG{n}{Nx} \PYG{o}{\PYGZhy{}} \PYG{l+m+mi}{1}\PYG{p}{)}
+    \PYG{n}{dy} \PYG{o}{=} \PYG{n}{R} \PYG{o}{/} \PYG{p}{(}\PYG{n}{Ny} \PYG{o}{\PYGZhy{}} \PYG{l+m+mi}{1}\PYG{p}{)}
+    \PYG{n}{x} \PYG{o}{=} \PYG{n}{np}\PYG{o}{.}\PYG{n}{linspace}\PYG{p}{(}\PYG{l+m+mi}{0}\PYG{p}{,} \PYG{n}{R}\PYG{p}{,} \PYG{n}{Nx}\PYG{p}{)}
+    \PYG{n}{y} \PYG{o}{=} \PYG{n}{np}\PYG{o}{.}\PYG{n}{linspace}\PYG{p}{(}\PYG{l+m+mi}{0}\PYG{p}{,} \PYG{n}{R}\PYG{p}{,} \PYG{n}{Ny}\PYG{p}{)}
+    \PYG{n}{X\PYGZus{}grid}\PYG{p}{,} \PYG{n}{Y\PYGZus{}grid} \PYG{o}{=} \PYG{n}{np}\PYG{o}{.}\PYG{n}{meshgrid}\PYG{p}{(}\PYG{n}{x}\PYG{p}{,} \PYG{n}{y}\PYG{p}{,} \PYG{n}{indexing}\PYG{o}{=}\PYG{l+s+s1}{\PYGZsq{}ij\PYGZsq{}}\PYG{p}{)}
+
+    \PYG{c+c1}{\PYGZsh{} Inicializar la matriz de temperaturas}
+    \PYG{n}{u} \PYG{o}{=} \PYG{n}{np}\PYG{o}{.}\PYG{n}{zeros}\PYG{p}{((}\PYG{n}{Nx}\PYG{p}{,} \PYG{n}{Ny}\PYG{p}{))}
+
+    \PYG{c+c1}{\PYGZsh{} Aplicar condiciones de frontera}
+    \PYG{c+c1}{\PYGZsh{} Borde circular (x\PYGZca{}2 + y\PYGZca{}2 = R\PYGZca{}2)}
+    \PYG{k}{for} \PYG{n}{i} \PYG{o+ow}{in} \PYG{n+nb}{range}\PYG{p}{(}\PYG{n}{Nx}\PYG{p}{):}
+        \PYG{k}{for} \PYG{n}{j} \PYG{o+ow}{in} \PYG{n+nb}{range}\PYG{p}{(}\PYG{n}{Ny}\PYG{p}{):}
+            \PYG{k}{if} \PYG{n}{x}\PYG{p}{[}\PYG{n}{i}\PYG{p}{]}\PYG{o}{**}\PYG{l+m+mi}{2} \PYG{o}{+} \PYG{n}{y}\PYG{p}{[}\PYG{n}{j}\PYG{p}{]}\PYG{o}{**}\PYG{l+m+mi}{2} \PYG{o}{\PYGZgt{}=} \PYG{n}{R}\PYG{o}{**}\PYG{l+m+mi}{2}\PYG{p}{:}
+                \PYG{n}{u}\PYG{p}{[}\PYG{n}{i}\PYG{p}{,} \PYG{n}{j}\PYG{p}{]} \PYG{o}{=} \PYG{n}{T1}
+
+    \PYG{c+c1}{\PYGZsh{} Diámetro (y = theta)}
+    \PYG{n}{u}\PYG{p}{[:,} \PYG{l+m+mi}{0}\PYG{p}{]} \PYG{o}{=} \PYG{n}{T0}
+
+    \PYG{c+c1}{\PYGZsh{} Iteraciones}
+    \PYG{n}{convergencia} \PYG{o}{=} \PYG{k+kc}{False}
+    \PYG{n}{iter\PYGZus{}count} \PYG{o}{=} \PYG{l+m+mi}{0}
+
+    \PYG{k}{while} \PYG{o+ow}{not} \PYG{n}{convergencia} \PYG{o+ow}{and} \PYG{n}{iter\PYGZus{}count} \PYG{o}{\PYGZlt{}} \PYG{n}{max\PYGZus{}iter}\PYG{p}{:}
+        \PYG{n}{u\PYGZus{}old} \PYG{o}{=} \PYG{n}{u}\PYG{o}{.}\PYG{n}{copy}\PYG{p}{()}
+        \PYG{n}{iter\PYGZus{}count} \PYG{o}{+=} \PYG{l+m+mi}{1}
+
+        \PYG{k}{for} \PYG{n}{i} \PYG{o+ow}{in} \PYG{n+nb}{range}\PYG{p}{(}\PYG{l+m+mi}{1}\PYG{p}{,} \PYG{n}{Nx} \PYG{o}{\PYGZhy{}} \PYG{l+m+mi}{1}\PYG{p}{):}
+            \PYG{k}{for} \PYG{n}{j} \PYG{o+ow}{in} \PYG{n+nb}{range}\PYG{p}{(}\PYG{l+m+mi}{1}\PYG{p}{,} \PYG{n}{Ny} \PYG{o}{\PYGZhy{}} \PYG{l+m+mi}{1}\PYG{p}{):}
+                \PYG{c+c1}{\PYGZsh{} Verificar si dentro.}
+                \PYG{k}{if} \PYG{n}{x}\PYG{p}{[}\PYG{n}{i}\PYG{p}{]}\PYG{o}{**}\PYG{l+m+mi}{2} \PYG{o}{+} \PYG{n}{y}\PYG{p}{[}\PYG{n}{j}\PYG{p}{]}\PYG{o}{**}\PYG{l+m+mi}{2} \PYG{o}{\PYGZlt{}} \PYG{n}{R}\PYG{o}{**}\PYG{l+m+mi}{2} \PYG{o+ow}{and} \PYG{n}{y}\PYG{p}{[}\PYG{n}{j}\PYG{p}{]} \PYG{o}{\PYGZgt{}=} \PYG{l+m+mi}{0}\PYG{p}{:}
+                    \PYG{n}{u\PYGZus{}new} \PYG{o}{=} \PYG{l+m+mf}{0.25} \PYG{o}{*} \PYG{p}{(}\PYG{n}{u}\PYG{p}{[}\PYG{n}{i}\PYG{o}{+}\PYG{l+m+mi}{1}\PYG{p}{,} \PYG{n}{j}\PYG{p}{]} \PYG{o}{+} \PYG{n}{u}\PYG{p}{[}\PYG{n}{i}\PYG{o}{\PYGZhy{}}\PYG{l+m+mi}{1}\PYG{p}{,} \PYG{n}{j}\PYG{p}{]} \PYG{o}{+} \PYG{n}{u}\PYG{p}{[}\PYG{n}{i}\PYG{p}{,} \PYG{n}{j}\PYG{o}{+}\PYG{l+m+mi}{1}\PYG{p}{]} \PYG{o}{+} \PYG{n}{u}\PYG{p}{[}\PYG{n}{i}\PYG{p}{,} \PYG{n}{j}\PYG{o}{\PYGZhy{}}\PYG{l+m+mi}{1}\PYG{p}{])}
+                    \PYG{n}{u}\PYG{p}{[}\PYG{n}{i}\PYG{p}{,} \PYG{n}{j}\PYG{p}{]} \PYG{o}{=} \PYG{n}{u}\PYG{p}{[}\PYG{n}{i}\PYG{p}{,} \PYG{n}{j}\PYG{p}{]} \PYG{o}{+} \PYG{n}{omega} \PYG{o}{*} \PYG{p}{(}\PYG{n}{u\PYGZus{}new} \PYG{o}{\PYGZhy{}} \PYG{n}{u}\PYG{p}{[}\PYG{n}{i}\PYG{p}{,} \PYG{n}{j}\PYG{p}{])}
+
+        \PYG{c+c1}{\PYGZsh{} Verificar convergencia}
+        \PYG{n}{max\PYGZus{}diff} \PYG{o}{=} \PYG{n}{np}\PYG{o}{.}\PYG{n}{max}\PYG{p}{(}\PYG{n}{np}\PYG{o}{.}\PYG{n}{abs}\PYG{p}{(}\PYG{n}{u} \PYG{o}{\PYGZhy{}} \PYG{n}{u\PYGZus{}old}\PYG{p}{))}
+        \PYG{k}{if} \PYG{n}{max\PYGZus{}diff} \PYG{o}{\PYGZlt{}} \PYG{n}{tolerancia}\PYG{p}{:}
+            \PYG{n}{convergencia} \PYG{o}{=} \PYG{k+kc}{True}
+            \PYG{n}{informer}\PYG{o}{.}\PYG{n}{info}\PYG{p}{(}\PYG{l+s+sa}{f}\PYG{l+s+s1}{\PYGZsq{}Convergencia alcanzada en }\PYG{l+s+si}{\PYGZob{}}\PYG{n}{iter\PYGZus{}count}\PYG{l+s+si}{\PYGZcb{}}\PYG{l+s+s1}{ iteraciones con diferencia máxima }\PYG{l+s+si}{\PYGZob{}}\PYG{n}{max\PYGZus{}diff}\PYG{l+s+si}{:}\PYG{l+s+s1}{.2e}\PYG{l+s+si}{\PYGZcb{}}\PYG{l+s+s1}{\PYGZsq{}}\PYG{p}{)}
+
+    \PYG{k}{if} \PYG{o+ow}{not} \PYG{n}{convergencia}\PYG{p}{:}
+        \PYG{n}{informer}\PYG{o}{.}\PYG{n}{warning}\PYG{p}{(}\PYG{l+s+sa}{f}\PYG{l+s+s1}{\PYGZsq{}No se alcanzó la convergencia después de }\PYG{l+s+si}{\PYGZob{}}\PYG{n}{max\PYGZus{}iter}\PYG{l+s+si}{\PYGZcb{}}\PYG{l+s+s1}{ iteraciones\PYGZsq{}}\PYG{p}{)}
+
+    \PYG{k}{return} \PYG{n}{x}\PYG{p}{,} \PYG{n}{y}\PYG{p}{,} \PYG{n}{u}
+
+\PYG{c+c1}{\PYGZsh{} Función para convertir la tabla a LaTeX}
+\PYG{k}{def} \PYG{n+nf}{convertir\PYGZus{}tabla\PYGZus{}a\PYGZus{}latex}\PYG{p}{(}\PYG{n}{df}\PYG{p}{:} \PYG{n}{pd}\PYG{o}{.}\PYG{n}{DataFrame}\PYG{p}{,} \PYG{n}{ruta\PYGZus{}salida}\PYG{p}{:} \PYG{n+nb}{str}\PYG{p}{):}
+    \PYG{n}{latex\PYGZus{}code} \PYG{o}{=} \PYG{n}{df}\PYG{o}{.}\PYG{n}{to\PYGZus{}latex}\PYG{p}{(}\PYG{n}{index}\PYG{o}{=}\PYG{k+kc}{False}\PYG{p}{)}
+    \PYG{k}{with} \PYG{n+nb}{open}\PYG{p}{(}\PYG{n}{ruta\PYGZus{}salida}\PYG{p}{,} \PYG{l+s+s1}{\PYGZsq{}w\PYGZsq{}}\PYG{p}{)} \PYG{k}{as} \PYG{n}{f}\PYG{p}{:}
+        \PYG{n}{f}\PYG{o}{.}\PYG{n}{write}\PYG{p}{(}\PYG{n}{latex\PYGZus{}code}\PYG{p}{)}
+    \PYG{n}{informer}\PYG{o}{.}\PYG{n}{info}\PYG{p}{(}\PYG{l+s+sa}{f}\PYG{l+s+s2}{\PYGZdq{}Tabla en formato LaTeX guardada en }\PYG{l+s+si}{\PYGZob{}}\PYG{n}{ruta\PYGZus{}salida}\PYG{l+s+si}{\PYGZcb{}}\PYG{l+s+s2}{\PYGZdq{}}\PYG{p}{)}
+
+\PYG{k}{if} \PYG{n+nv+vm}{\PYGZus{}\PYGZus{}name\PYGZus{}\PYGZus{}} \PYG{o}{==} \PYG{l+s+s1}{\PYGZsq{}\PYGZus{}\PYGZus{}main\PYGZus{}\PYGZus{}\PYGZsq{}}\PYG{p}{:}
+
+    \PYG{c+c1}{\PYGZsh{} Parámetros físicos y numéricos}
+    \PYG{n}{parser} \PYG{o}{=} \PYG{n}{argparse}\PYG{o}{.}\PYG{n}{ArgumentParser}\PYG{p}{(}\PYG{n}{description}\PYG{o}{=}\PYG{l+s+s1}{\PYGZsq{}Solución de la ecuación de Laplace en una lámina semicircular.\PYGZsq{}}\PYG{p}{)}
+    \PYG{n}{parser}\PYG{o}{.}\PYG{n}{add\PYGZus{}argument}\PYG{p}{(}\PYG{l+s+s1}{\PYGZsq{}\PYGZhy{}\PYGZhy{}verbosity\PYGZsq{}}\PYG{p}{,} \PYG{n+nb}{type}\PYG{o}{=}\PYG{n+nb}{str}\PYG{p}{,} \PYG{n}{default}\PYG{o}{=}\PYG{l+s+s1}{\PYGZsq{}INFO\PYGZsq{}}\PYG{p}{,} \PYG{n}{help}\PYG{o}{=}\PYG{l+s+s1}{\PYGZsq{}Nivel de verbosidad del logger.\PYGZsq{}}\PYG{p}{)}
+    \PYG{n}{argumentos\PYGZus{}parseados} \PYG{o}{=} \PYG{n}{parser}\PYG{o}{.}\PYG{n}{parse\PYGZus{}args}\PYG{p}{()}
+    \PYG{n}{informer}\PYG{o}{.}\PYG{n}{setLevel}\PYG{p}{(}\PYG{n}{argumentos\PYGZus{}parseados}\PYG{o}{.}\PYG{n}{verbosity}\PYG{p}{)}
+
+    \PYG{c+c1}{\PYGZsh{} Rutas de salida}
+    \PYG{n}{TEMATICA} \PYG{o}{=} \PYG{l+s+s1}{\PYGZsq{}ecuacion\PYGZus{}laplace\PYGZsq{}}
+    \PYG{n}{FORMATO\PYGZus{}GRAFICAS} \PYG{o}{=} \PYG{l+s+s1}{\PYGZsq{}.png\PYGZsq{}}
+    \PYG{n}{OUTPUTS} \PYG{o}{=} \PYG{l+s+s1}{\PYGZsq{}OUTPUTS\PYGZsq{}}
+    \PYG{n}{RUTA\PYGZus{}OUTPUTS} \PYG{o}{=} \PYG{l+s+sa}{f}\PYG{l+s+s2}{\PYGZdq{}./}\PYG{l+s+si}{\PYGZob{}}\PYG{n}{OUTPUTS}\PYG{l+s+si}{\PYGZcb{}}\PYG{l+s+s2}{\PYGZdq{}}
+    \PYG{n}{RUTA\PYGZus{}OUTPUTS\PYGZus{}LATEX} \PYG{o}{=} \PYG{l+s+sa}{f}\PYG{l+s+s2}{\PYGZdq{}./e3\PYGZus{}latex/figuras\PYGZdq{}}
+    \PYG{n}{Path}\PYG{p}{(}\PYG{n}{RUTA\PYGZus{}OUTPUTS}\PYG{p}{)}\PYG{o}{.}\PYG{n}{mkdir}\PYG{p}{(}\PYG{n}{parents}\PYG{o}{=}\PYG{k+kc}{True}\PYG{p}{,} \PYG{n}{exist\PYGZus{}ok}\PYG{o}{=}\PYG{k+kc}{True}\PYG{p}{)}
+    \PYG{n}{Path}\PYG{p}{(}\PYG{n}{RUTA\PYGZus{}OUTPUTS\PYGZus{}LATEX}\PYG{p}{)}\PYG{o}{.}\PYG{n}{mkdir}\PYG{p}{(}\PYG{n}{parents}\PYG{o}{=}\PYG{k+kc}{True}\PYG{p}{,} \PYG{n}{exist\PYGZus{}ok}\PYG{o}{=}\PYG{k+kc}{True}\PYG{p}{)}
+
+    \PYG{c+c1}{\PYGZsh{} Parámetros del problema}
+    \PYG{n}{R} \PYG{o}{=} \PYG{l+m+mf}{1.0}  \PYG{c+c1}{\PYGZsh{} Radio de la lámina semicircular}
+    \PYG{n}{T0} \PYG{o}{=} \PYG{l+m+mf}{0.0}  \PYG{c+c1}{\PYGZsh{} Temperatura en el diámetro}
+    \PYG{n}{T1} \PYG{o}{=} \PYG{l+m+mf}{50.0}   \PYG{c+c1}{\PYGZsh{} Temperatura en el borde circular}
+
+    \PYG{c+c1}{\PYGZsh{} Parámetros numéricos para coordenadas polares}
+    \PYG{n}{Nr} \PYG{o}{=} \PYG{l+m+mi}{50}  \PYG{c+c1}{\PYGZsh{} Aumentamos la resolución para mayor precisión}
+    \PYG{n}{Ntheta} \PYG{o}{=} \PYG{l+m+mi}{50}
+    \PYG{n}{tolerancia} \PYG{o}{=} \PYG{l+m+mf}{1e\PYGZhy{}6}
+
+    \PYG{c+c1}{\PYGZsh{} Resolver en coordenadas polares}
+    \PYG{n}{r\PYGZus{}polar}\PYG{p}{,} \PYG{n}{theta\PYGZus{}polar}\PYG{p}{,} \PYG{n}{u\PYGZus{}polar} \PYG{o}{=} \PYG{n}{resolver\PYGZus{}laplace\PYGZus{}polar}\PYG{p}{(}\PYG{n}{Nr}\PYG{p}{,} \PYG{n}{Ntheta}\PYG{p}{,} \PYG{n}{R}\PYG{p}{,} \PYG{n}{T0}\PYG{p}{,} \PYG{n}{T1}\PYG{p}{,} \PYG{n}{tolerancia}\PYG{o}{=}\PYG{n}{tolerancia}\PYG{p}{)}
+
+    \PYG{c+c1}{\PYGZsh{} Obtener las temperaturas en los puntos específicos (c)}
+    \PYG{n}{puntos\PYGZus{}r} \PYG{o}{=} \PYG{p}{[}\PYG{l+m+mi}{0}\PYG{p}{,} \PYG{n}{R}\PYG{o}{/}\PYG{l+m+mi}{4}\PYG{p}{,} \PYG{n}{R}\PYG{o}{/}\PYG{l+m+mi}{2}\PYG{p}{,} \PYG{l+m+mi}{3}\PYG{o}{*}\PYG{n}{R}\PYG{o}{/}\PYG{l+m+mi}{4}\PYG{p}{,} \PYG{n}{R}\PYG{p}{]}
+    \PYG{n}{puntos\PYGZus{}theta} \PYG{o}{=} \PYG{p}{[}\PYG{l+m+mi}{0}\PYG{p}{,} \PYG{n}{np}\PYG{o}{.}\PYG{n}{pi}\PYG{o}{/}\PYG{l+m+mi}{4}\PYG{p}{,} \PYG{n}{np}\PYG{o}{.}\PYG{n}{pi}\PYG{o}{/}\PYG{l+m+mi}{2}\PYG{p}{,} \PYG{l+m+mi}{3}\PYG{o}{*}\PYG{n}{np}\PYG{o}{.}\PYG{n}{pi}\PYG{o}{/}\PYG{l+m+mi}{4}\PYG{p}{,} \PYG{n}{np}\PYG{o}{.}\PYG{n}{pi}\PYG{p}{]}
+
+    \PYG{n}{datos\PYGZus{}puntos} \PYG{o}{=} \PYG{p}{[]}
+
+    \PYG{k}{for} \PYG{n}{r\PYGZus{}val} \PYG{o+ow}{in} \PYG{n}{puntos\PYGZus{}r}\PYG{p}{:}
+        \PYG{n}{r\PYGZus{}idx} \PYG{o}{=} \PYG{n}{np}\PYG{o}{.}\PYG{n}{argmin}\PYG{p}{(}\PYG{n}{np}\PYG{o}{.}\PYG{n}{abs}\PYG{p}{(}\PYG{n}{r\PYGZus{}polar} \PYG{o}{\PYGZhy{}} \PYG{n}{r\PYGZus{}val}\PYG{p}{))}
+        \PYG{k}{for} \PYG{n}{theta\PYGZus{}val} \PYG{o+ow}{in} \PYG{n}{puntos\PYGZus{}theta}\PYG{p}{:}
+            \PYG{n}{theta\PYGZus{}idx} \PYG{o}{=} \PYG{n}{np}\PYG{o}{.}\PYG{n}{argmin}\PYG{p}{(}\PYG{n}{np}\PYG{o}{.}\PYG{n}{abs}\PYG{p}{(}\PYG{n}{theta\PYGZus{}polar} \PYG{o}{\PYGZhy{}} \PYG{n}{theta\PYGZus{}val}\PYG{p}{))}
+            \PYG{n}{temp} \PYG{o}{=} \PYG{n}{u\PYGZus{}polar}\PYG{p}{[}\PYG{n}{r\PYGZus{}idx}\PYG{p}{,} \PYG{n}{theta\PYGZus{}idx}\PYG{p}{]}
+            \PYG{n}{datos\PYGZus{}puntos}\PYG{o}{.}\PYG{n}{append}\PYG{p}{([}\PYG{l+s+sa}{f}\PYG{l+s+s2}{\PYGZdq{}r=}\PYG{l+s+si}{\PYGZob{}}\PYG{n}{r\PYGZus{}polar}\PYG{p}{[}\PYG{n}{r\PYGZus{}idx}\PYG{p}{]}\PYG{l+s+si}{:}\PYG{l+s+s2}{.2f}\PYG{l+s+si}{\PYGZcb{}}\PYG{l+s+s2}{, theta=}\PYG{l+s+si}{\PYGZob{}}\PYG{n}{theta\PYGZus{}polar}\PYG{p}{[}\PYG{n}{theta\PYGZus{}idx}\PYG{p}{]}\PYG{l+s+si}{:}\PYG{l+s+s2}{.2f}\PYG{l+s+si}{\PYGZcb{}}\PYG{l+s+s2}{\PYGZdq{}}\PYG{p}{,} \PYG{n}{temp}\PYG{p}{])}
+
+    \PYG{c+c1}{\PYGZsh{} Crear tabla de resultados}
+    \PYG{n}{tabla\PYGZus{}polar} \PYG{o}{=} \PYG{n}{pd}\PYG{o}{.}\PYG{n}{DataFrame}\PYG{p}{(}\PYG{n}{datos\PYGZus{}puntos}\PYG{p}{,} \PYG{n}{columns}\PYG{o}{=}\PYG{p}{[}\PYG{l+s+s1}{\PYGZsq{}Punto (r, theta)\PYGZsq{}}\PYG{p}{,} \PYG{l+s+s1}{\PYGZsq{}Temperatura (°C)\PYGZsq{}}\PYG{p}{])}
+
+    \PYG{c+c1}{\PYGZsh{} Guardar la tabla en CSV y LaTeX}
+    \PYG{n}{tabla\PYGZus{}polar}\PYG{o}{.}\PYG{n}{to\PYGZus{}csv}\PYG{p}{(}\PYG{l+s+sa}{f}\PYG{l+s+s2}{\PYGZdq{}}\PYG{l+s+si}{\PYGZob{}}\PYG{n}{RUTA\PYGZus{}OUTPUTS}\PYG{l+s+si}{\PYGZcb{}}\PYG{l+s+s2}{/tabla\PYGZus{}polar.csv\PYGZdq{}}\PYG{p}{,} \PYG{n}{index}\PYG{o}{=}\PYG{k+kc}{False}\PYG{p}{)}
+    \PYG{n}{convertir\PYGZus{}tabla\PYGZus{}a\PYGZus{}latex}\PYG{p}{(}\PYG{n}{tabla\PYGZus{}polar}\PYG{p}{,} \PYG{l+s+sa}{f}\PYG{l+s+s2}{\PYGZdq{}}\PYG{l+s+si}{\PYGZob{}}\PYG{n}{RUTA\PYGZus{}OUTPUTS}\PYG{l+s+si}{\PYGZcb{}}\PYG{l+s+s2}{/}\PYG{l+s+si}{\PYGZob{}}\PYG{n}{TEMATICA}\PYG{l+s+si}{\PYGZcb{}}\PYG{l+s+s2}{\PYGZus{}tabla\PYGZus{}polar.tex\PYGZdq{}}\PYG{p}{)}
+
+
+    \PYG{c+c1}{\PYGZsh{} Visualización de la solución numérica en coordenadas polares}
+    \PYG{n}{plt}\PYG{o}{.}\PYG{n}{figure}\PYG{p}{(}\PYG{n}{figsize}\PYG{o}{=}\PYG{p}{(}\PYG{l+m+mi}{8}\PYG{p}{,} \PYG{l+m+mi}{6}\PYG{p}{))}
+    \PYG{n}{R\PYGZus{}grid}\PYG{p}{,} \PYG{n}{Theta\PYGZus{}grid} \PYG{o}{=} \PYG{n}{np}\PYG{o}{.}\PYG{n}{meshgrid}\PYG{p}{(}\PYG{n}{r\PYGZus{}polar}\PYG{p}{,} \PYG{n}{theta\PYGZus{}polar}\PYG{p}{,} \PYG{n}{indexing}\PYG{o}{=}\PYG{l+s+s1}{\PYGZsq{}ij\PYGZsq{}}\PYG{p}{)}
+    \PYG{n}{X} \PYG{o}{=} \PYG{n}{R\PYGZus{}grid} \PYG{o}{*} \PYG{n}{np}\PYG{o}{.}\PYG{n}{cos}\PYG{p}{(}\PYG{n}{Theta\PYGZus{}grid}\PYG{p}{)}
+    \PYG{n}{Y} \PYG{o}{=} \PYG{n}{R\PYGZus{}grid} \PYG{o}{*} \PYG{n}{np}\PYG{o}{.}\PYG{n}{sin}\PYG{p}{(}\PYG{n}{Theta\PYGZus{}grid}\PYG{p}{)}
+    \PYG{n}{plt}\PYG{o}{.}\PYG{n}{contourf}\PYG{p}{(}\PYG{n}{X}\PYG{p}{,} \PYG{n}{Y}\PYG{p}{,} \PYG{n}{u\PYGZus{}polar}\PYG{p}{,} \PYG{n}{levels}\PYG{o}{=}\PYG{l+m+mi}{50}\PYG{p}{,} \PYG{n}{cmap}\PYG{o}{=}\PYG{l+s+s1}{\PYGZsq{}hot\PYGZsq{}}\PYG{p}{)}
+    \PYG{n}{plt}\PYG{o}{.}\PYG{n}{colorbar}\PYG{p}{(}\PYG{n}{label}\PYG{o}{=}\PYG{l+s+s1}{\PYGZsq{}Temperatura (°C)\PYGZsq{}}\PYG{p}{)}
+    \PYG{n}{plt}\PYG{o}{.}\PYG{n}{xlabel}\PYG{p}{(}\PYG{l+s+s1}{\PYGZsq{}x\PYGZsq{}}\PYG{p}{)}
+    \PYG{n}{plt}\PYG{o}{.}\PYG{n}{ylabel}\PYG{p}{(}\PYG{l+s+s1}{\PYGZsq{}y\PYGZsq{}}\PYG{p}{)}
+    \PYG{n}{plt}\PYG{o}{.}\PYG{n}{title}\PYG{p}{(}\PYG{l+s+s1}{\PYGZsq{}Distribución de temperatura en coordenadas polares\PYGZsq{}}\PYG{p}{)}
+    \PYG{n}{plt}\PYG{o}{.}\PYG{n}{axis}\PYG{p}{(}\PYG{l+s+s1}{\PYGZsq{}equal\PYGZsq{}}\PYG{p}{)}
+    \PYG{n}{plt}\PYG{o}{.}\PYG{n}{savefig}\PYG{p}{(}\PYG{l+s+sa}{f}\PYG{l+s+s2}{\PYGZdq{}}\PYG{l+s+si}{\PYGZob{}}\PYG{n}{RUTA\PYGZus{}OUTPUTS}\PYG{l+s+si}{\PYGZcb{}}\PYG{l+s+s2}{/}\PYG{l+s+si}{\PYGZob{}}\PYG{n}{TEMATICA}\PYG{l+s+si}{\PYGZcb{}}\PYG{l+s+s2}{\PYGZus{}polar}\PYG{l+s+si}{\PYGZob{}}\PYG{n}{FORMATO\PYGZus{}GRAFICAS}\PYG{l+s+si}{\PYGZcb{}}\PYG{l+s+s2}{\PYGZdq{}}\PYG{p}{)}
+    \PYG{n}{plt}\PYG{o}{.}\PYG{n}{savefig}\PYG{p}{(}\PYG{l+s+sa}{f}\PYG{l+s+s2}{\PYGZdq{}}\PYG{l+s+si}{\PYGZob{}}\PYG{n}{RUTA\PYGZus{}OUTPUTS\PYGZus{}LATEX}\PYG{l+s+si}{\PYGZcb{}}\PYG{l+s+s2}{/}\PYG{l+s+si}{\PYGZob{}}\PYG{n}{TEMATICA}\PYG{l+s+si}{\PYGZcb{}}\PYG{l+s+s2}{\PYGZus{}polar}\PYG{l+s+si}{\PYGZob{}}\PYG{n}{FORMATO\PYGZus{}GRAFICAS}\PYG{l+s+si}{\PYGZcb{}}\PYG{l+s+s2}{\PYGZdq{}}\PYG{p}{)}
+
+    \PYG{c+c1}{\PYGZsh{} Parámetros numéricos para coordenadas cartesianas}
+    \PYG{n}{Nx} \PYG{o}{=} \PYG{l+m+mi}{50}
+    \PYG{n}{Ny} \PYG{o}{=} \PYG{l+m+mi}{50}
+
+    \PYG{c+c1}{\PYGZsh{} Resolver en coordenadas cartesianas}
+    \PYG{n}{x\PYGZus{}cart}\PYG{p}{,} \PYG{n}{y\PYGZus{}cart}\PYG{p}{,} \PYG{n}{u\PYGZus{}cart} \PYG{o}{=} \PYG{n}{resolver\PYGZus{}laplace\PYGZus{}cartesiano}\PYG{p}{(}\PYG{n}{Nx}\PYG{p}{,} \PYG{n}{Ny}\PYG{p}{,} \PYG{n}{R}\PYG{p}{,} \PYG{n}{T0}\PYG{p}{,} \PYG{n}{T1}\PYG{p}{,} \PYG{n}{tolerancia}\PYG{o}{=}\PYG{n}{tolerancia}\PYG{p}{)}
+
+    \PYG{c+c1}{\PYGZsh{} Obtener las temperaturas en los puntos específicos (d)}
+    \PYG{n}{puntos\PYGZus{}x} \PYG{o}{=} \PYG{p}{[}\PYG{l+m+mi}{0}\PYG{p}{,} \PYG{n}{R}\PYG{o}{/}\PYG{l+m+mi}{4}\PYG{p}{,} \PYG{n}{R}\PYG{o}{/}\PYG{l+m+mi}{2}\PYG{p}{,} \PYG{l+m+mi}{3}\PYG{o}{*}\PYG{n}{R}\PYG{o}{/}\PYG{l+m+mi}{4}\PYG{p}{,} \PYG{n}{R}\PYG{p}{]}
+    \PYG{n}{puntos\PYGZus{}y} \PYG{o}{=} \PYG{p}{[}\PYG{l+m+mi}{0}\PYG{p}{,} \PYG{n}{R}\PYG{o}{/}\PYG{l+m+mi}{4}\PYG{p}{,} \PYG{n}{R}\PYG{o}{/}\PYG{l+m+mi}{2}\PYG{p}{,} \PYG{l+m+mi}{3}\PYG{o}{*}\PYG{n}{R}\PYG{o}{/}\PYG{l+m+mi}{4}\PYG{p}{,} \PYG{n}{R}\PYG{p}{]}
+
+    \PYG{n}{datos\PYGZus{}puntos\PYGZus{}cart} \PYG{o}{=} \PYG{p}{[]}
+
+    \PYG{k}{for} \PYG{n}{x\PYGZus{}val} \PYG{o+ow}{in} \PYG{n}{puntos\PYGZus{}x}\PYG{p}{:}
+        \PYG{n}{x\PYGZus{}idx} \PYG{o}{=} \PYG{n}{np}\PYG{o}{.}\PYG{n}{argmin}\PYG{p}{(}\PYG{n}{np}\PYG{o}{.}\PYG{n}{abs}\PYG{p}{(}\PYG{n}{x\PYGZus{}cart} \PYG{o}{\PYGZhy{}} \PYG{n}{x\PYGZus{}val}\PYG{p}{))}
+        \PYG{k}{for} \PYG{n}{y\PYGZus{}val} \PYG{o+ow}{in} \PYG{n}{puntos\PYGZus{}y}\PYG{p}{:}
+            \PYG{n}{y\PYGZus{}idx} \PYG{o}{=} \PYG{n}{np}\PYG{o}{.}\PYG{n}{argmin}\PYG{p}{(}\PYG{n}{np}\PYG{o}{.}\PYG{n}{abs}\PYG{p}{(}\PYG{n}{y\PYGZus{}cart} \PYG{o}{\PYGZhy{}} \PYG{n}{y\PYGZus{}val}\PYG{p}{))}
+            \PYG{c+c1}{\PYGZsh{} Verificar si dentro.}
+            \PYG{k}{if} \PYG{n}{x\PYGZus{}cart}\PYG{p}{[}\PYG{n}{x\PYGZus{}idx}\PYG{p}{]}\PYG{o}{**}\PYG{l+m+mi}{2} \PYG{o}{+} \PYG{n}{y\PYGZus{}cart}\PYG{p}{[}\PYG{n}{y\PYGZus{}idx}\PYG{p}{]}\PYG{o}{**}\PYG{l+m+mi}{2} \PYG{o}{\PYGZlt{}=} \PYG{n}{R}\PYG{o}{**}\PYG{l+m+mi}{2} \PYG{o+ow}{and} \PYG{n}{y\PYGZus{}cart}\PYG{p}{[}\PYG{n}{y\PYGZus{}idx}\PYG{p}{]} \PYG{o}{\PYGZgt{}=} \PYG{l+m+mi}{0}\PYG{p}{:}
+                \PYG{n}{temp} \PYG{o}{=} \PYG{n}{u\PYGZus{}cart}\PYG{p}{[}\PYG{n}{x\PYGZus{}idx}\PYG{p}{,} \PYG{n}{y\PYGZus{}idx}\PYG{p}{]}
+                \PYG{n}{datos\PYGZus{}puntos\PYGZus{}cart}\PYG{o}{.}\PYG{n}{append}\PYG{p}{([}\PYG{l+s+sa}{f}\PYG{l+s+s2}{\PYGZdq{}x=}\PYG{l+s+si}{\PYGZob{}}\PYG{n}{x\PYGZus{}cart}\PYG{p}{[}\PYG{n}{x\PYGZus{}idx}\PYG{p}{]}\PYG{l+s+si}{:}\PYG{l+s+s2}{.2f}\PYG{l+s+si}{\PYGZcb{}}\PYG{l+s+s2}{, y=}\PYG{l+s+si}{\PYGZob{}}\PYG{n}{y\PYGZus{}cart}\PYG{p}{[}\PYG{n}{y\PYGZus{}idx}\PYG{p}{]}\PYG{l+s+si}{:}\PYG{l+s+s2}{.2f}\PYG{l+s+si}{\PYGZcb{}}\PYG{l+s+s2}{\PYGZdq{}}\PYG{p}{,} \PYG{n}{temp}\PYG{p}{])}
+
+    \PYG{c+c1}{\PYGZsh{} Crear tabla de resultados}
+    \PYG{n}{tabla\PYGZus{}cartesiano} \PYG{o}{=} \PYG{n}{pd}\PYG{o}{.}\PYG{n}{DataFrame}\PYG{p}{(}\PYG{n}{datos\PYGZus{}puntos\PYGZus{}cart}\PYG{p}{,} \PYG{n}{columns}\PYG{o}{=}\PYG{p}{[}\PYG{l+s+s1}{\PYGZsq{}Punto (x, y)\PYGZsq{}}\PYG{p}{,} \PYG{l+s+s1}{\PYGZsq{}Temperatura (°C)\PYGZsq{}}\PYG{p}{])}
+
+    \PYG{c+c1}{\PYGZsh{} Guardar la tabla en CSV y LaTeX}
+    \PYG{n}{tabla\PYGZus{}cartesiano}\PYG{o}{.}\PYG{n}{to\PYGZus{}csv}\PYG{p}{(}\PYG{l+s+sa}{f}\PYG{l+s+s2}{\PYGZdq{}}\PYG{l+s+si}{\PYGZob{}}\PYG{n}{RUTA\PYGZus{}OUTPUTS}\PYG{l+s+si}{\PYGZcb{}}\PYG{l+s+s2}{/tabla\PYGZus{}cartesiano.csv\PYGZdq{}}\PYG{p}{,} \PYG{n}{index}\PYG{o}{=}\PYG{k+kc}{False}\PYG{p}{)}
+    \PYG{n}{convertir\PYGZus{}tabla\PYGZus{}a\PYGZus{}latex}\PYG{p}{(}\PYG{n}{tabla\PYGZus{}cartesiano}\PYG{p}{,} \PYG{l+s+sa}{f}\PYG{l+s+s2}{\PYGZdq{}}\PYG{l+s+si}{\PYGZob{}}\PYG{n}{RUTA\PYGZus{}OUTPUTS}\PYG{l+s+si}{\PYGZcb{}}\PYG{l+s+s2}{/}\PYG{l+s+si}{\PYGZob{}}\PYG{n}{TEMATICA}\PYG{l+s+si}{\PYGZcb{}}\PYG{l+s+s2}{\PYGZus{}tabla\PYGZus{}cartesiano.tex\PYGZdq{}}\PYG{p}{)}
+
+    \PYG{c+c1}{\PYGZsh{} Visualización de la solución numérica en coordenadas cartesianas}
+    \PYG{n}{plt}\PYG{o}{.}\PYG{n}{figure}\PYG{p}{(}\PYG{n}{figsize}\PYG{o}{=}\PYG{p}{(}\PYG{l+m+mi}{8}\PYG{p}{,} \PYG{l+m+mi}{6}\PYG{p}{))}
+    \PYG{n}{X\PYGZus{}grid}\PYG{p}{,} \PYG{n}{Y\PYGZus{}grid} \PYG{o}{=} \PYG{n}{np}\PYG{o}{.}\PYG{n}{meshgrid}\PYG{p}{(}\PYG{n}{x\PYGZus{}cart}\PYG{p}{,} \PYG{n}{y\PYGZus{}cart}\PYG{p}{,} \PYG{n}{indexing}\PYG{o}{=}\PYG{l+s+s1}{\PYGZsq{}ij\PYGZsq{}}\PYG{p}{)}
+    \PYG{n}{plt}\PYG{o}{.}\PYG{n}{contourf}\PYG{p}{(}\PYG{n}{X\PYGZus{}grid}\PYG{p}{,} \PYG{n}{Y\PYGZus{}grid}\PYG{p}{,} \PYG{n}{u\PYGZus{}cart}\PYG{p}{,} \PYG{n}{levels}\PYG{o}{=}\PYG{l+m+mi}{50}\PYG{p}{,} \PYG{n}{cmap}\PYG{o}{=}\PYG{l+s+s1}{\PYGZsq{}hot\PYGZsq{}}\PYG{p}{)}
+    \PYG{n}{plt}\PYG{o}{.}\PYG{n}{colorbar}\PYG{p}{(}\PYG{n}{label}\PYG{o}{=}\PYG{l+s+s1}{\PYGZsq{}Temperatura (°C)\PYGZsq{}}\PYG{p}{)}
+    \PYG{n}{plt}\PYG{o}{.}\PYG{n}{xlabel}\PYG{p}{(}\PYG{l+s+s1}{\PYGZsq{}x\PYGZsq{}}\PYG{p}{)}
+    \PYG{n}{plt}\PYG{o}{.}\PYG{n}{ylabel}\PYG{p}{(}\PYG{l+s+s1}{\PYGZsq{}y\PYGZsq{}}\PYG{p}{)}
+    \PYG{n}{plt}\PYG{o}{.}\PYG{n}{title}\PYG{p}{(}\PYG{l+s+s1}{\PYGZsq{}Distribución de temperatura en coordenadas cartesianas\PYGZsq{}}\PYG{p}{)}
+    \PYG{n}{plt}\PYG{o}{.}\PYG{n}{axis}\PYG{p}{(}\PYG{l+s+s1}{\PYGZsq{}equal\PYGZsq{}}\PYG{p}{)}
+    \PYG{n}{plt}\PYG{o}{.}\PYG{n}{savefig}\PYG{p}{(}\PYG{l+s+sa}{f}\PYG{l+s+s2}{\PYGZdq{}}\PYG{l+s+si}{\PYGZob{}}\PYG{n}{RUTA\PYGZus{}OUTPUTS}\PYG{l+s+si}{\PYGZcb{}}\PYG{l+s+s2}{/}\PYG{l+s+si}{\PYGZob{}}\PYG{n}{TEMATICA}\PYG{l+s+si}{\PYGZcb{}}\PYG{l+s+s2}{\PYGZus{}cartesiano}\PYG{l+s+si}{\PYGZob{}}\PYG{n}{FORMATO\PYGZus{}GRAFICAS}\PYG{l+s+si}{\PYGZcb{}}\PYG{l+s+s2}{\PYGZdq{}}\PYG{p}{)}
+    \PYG{n}{plt}\PYG{o}{.}\PYG{n}{savefig}\PYG{p}{(}\PYG{l+s+sa}{f}\PYG{l+s+s2}{\PYGZdq{}}\PYG{l+s+si}{\PYGZob{}}\PYG{n}{RUTA\PYGZus{}OUTPUTS\PYGZus{}LATEX}\PYG{l+s+si}{\PYGZcb{}}\PYG{l+s+s2}{/}\PYG{l+s+si}{\PYGZob{}}\PYG{n}{TEMATICA}\PYG{l+s+si}{\PYGZcb{}}\PYG{l+s+s2}{\PYGZus{}cartesiano}\PYG{l+s+si}{\PYGZob{}}\PYG{n}{FORMATO\PYGZus{}GRAFICAS}\PYG{l+s+si}{\PYGZcb{}}\PYG{l+s+s2}{\PYGZdq{}}\PYG{p}{)}
+
+    \PYG{n}{informer}\PYG{o}{.}\PYG{n}{info}\PYG{p}{(}\PYG{l+s+s2}{\PYGZdq{}Cálculo completado y resultados guardados.\PYGZdq{}}\PYG{p}{)}
+
+
+
+\end{Verbatim}

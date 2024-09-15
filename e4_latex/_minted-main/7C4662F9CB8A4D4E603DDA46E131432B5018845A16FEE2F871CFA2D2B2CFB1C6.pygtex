@@ -1,0 +1,42 @@
+\begin{Verbatim}[commandchars=\\\{\}]
+\PYG{c+c1}{\PYGZsh{} /e/lib/clases.py}
+
+\PYG{k+kn}{from} \PYG{n+nn}{..core.\PYGZus{}abstractas} \PYG{k+kn}{import} \PYG{n}{Parametros}
+\PYG{k+kn}{from} \PYG{n+nn}{..core.\PYGZus{}typing} \PYG{k+kn}{import} \PYG{p}{(}
+    \PYG{n}{InputsLike}
+\PYG{p}{)}
+
+\PYG{k}{class} \PYG{n+nc}{ParametrosProblema}\PYG{p}{(}\PYG{n}{Parametros}\PYG{p}{):}
+
+    \PYG{l+s+sd}{\PYGZdq{}\PYGZdq{}\PYGZdq{}}
+\PYG{l+s+sd}{    Ejemplo}
+\PYG{l+s+sd}{    \PYGZhy{}\PYGZhy{}\PYGZhy{}}
+\PYG{l+s+sd}{    \PYGZgt{}\PYGZgt{}\PYGZgt{} Temperatura.T0 = 0}
+\PYG{l+s+sd}{    \PYGZgt{}\PYGZgt{}\PYGZgt{} Temperatura.T1 = 50}
+\PYG{l+s+sd}{    \PYGZgt{}\PYGZgt{}\PYGZgt{} NpuntosDireccion.Nx = 100}
+\PYG{l+s+sd}{    \PYGZgt{}\PYGZgt{}\PYGZgt{} NpuntosDireccion.Ny = 100}
+\PYG{l+s+sd}{    \PYGZgt{}\PYGZgt{}\PYGZgt{} SemiCirculoParametros.R = 1}
+
+\PYG{l+s+sd}{    \PYGZgt{}\PYGZgt{}\PYGZgt{} inputs = \PYGZob{}}
+\PYG{l+s+sd}{    \PYGZgt{}\PYGZgt{}\PYGZgt{}     \PYGZsq{}T0\PYGZsq{} : Temperatura.T0,}
+\PYG{l+s+sd}{    \PYGZgt{}\PYGZgt{}\PYGZgt{}     \PYGZsq{}T1\PYGZsq{} : Temperatura.T1,}
+\PYG{l+s+sd}{    \PYGZgt{}\PYGZgt{}\PYGZgt{}     \PYGZsq{}Nx\PYGZsq{} : NpuntosDireccion.Nx,}
+\PYG{l+s+sd}{    \PYGZgt{}\PYGZgt{}\PYGZgt{}     \PYGZsq{}Ny\PYGZsq{} : NpuntosDireccion.Ny,}
+\PYG{l+s+sd}{    \PYGZgt{}\PYGZgt{}\PYGZgt{}     \PYGZsq{}R\PYGZsq{} : SemiCirculoParametros.R}
+\PYG{l+s+sd}{    \PYGZgt{}\PYGZgt{}\PYGZgt{} \PYGZcb{}}
+
+\PYG{l+s+sd}{    \PYGZgt{}\PYGZgt{}\PYGZgt{} params = ParametrosProblema(dict\PYGZus{}parametros=inputs)}
+\PYG{l+s+sd}{    \PYGZgt{}\PYGZgt{}\PYGZgt{} params.print\PYGZus{}parametros}
+\PYG{l+s+sd}{    \PYGZdq{}\PYGZdq{}\PYGZdq{}}
+
+    \PYG{k}{def} \PYG{n+nf+fm}{\PYGZus{}\PYGZus{}init\PYGZus{}\PYGZus{}}\PYG{p}{(}\PYG{n+nb+bp}{self}\PYG{p}{,} \PYG{n}{dict\PYGZus{}parametros}\PYG{p}{:} \PYG{n}{InputsLike}\PYG{p}{)} \PYG{o}{\PYGZhy{}\PYGZgt{}} \PYG{k+kc}{None}\PYG{p}{:}
+        \PYG{n+nb+bp}{self}\PYG{o}{.}\PYG{n}{inputs} \PYG{o}{=} \PYG{n}{dict\PYGZus{}parametros}
+
+    \PYG{k}{def} \PYG{n+nf+fm}{\PYGZus{}\PYGZus{}repr\PYGZus{}\PYGZus{}}\PYG{p}{(}\PYG{n+nb+bp}{self}\PYG{p}{)} \PYG{o}{\PYGZhy{}\PYGZgt{}} \PYG{n+nb}{str}\PYG{p}{:}
+        \PYG{k}{return} \PYG{l+s+sa}{f}\PYG{l+s+s2}{\PYGZdq{}ParametrosProblema(}\PYG{l+s+si}{\PYGZob{}}\PYG{n+nb}{list}\PYG{p}{(}\PYG{n+nb+bp}{self}\PYG{o}{.}\PYG{n}{inputs}\PYG{o}{.}\PYG{n}{keys}\PYG{p}{())}\PYG{l+s+si}{\PYGZcb{}}\PYG{l+s+s2}{)\PYGZdq{}}
+
+    \PYG{n+nd}{@property}
+    \PYG{k}{def} \PYG{n+nf}{print\PYGZus{}parametros}\PYG{p}{(}\PYG{n+nb+bp}{self}\PYG{p}{):}
+        \PYG{k}{for} \PYG{n}{parametro}\PYG{p}{,} \PYG{n}{valor} \PYG{o+ow}{in} \PYG{n+nb+bp}{self}\PYG{o}{.}\PYG{n}{inputs}\PYG{o}{.}\PYG{n}{items}\PYG{p}{():}
+            \PYG{n+nb}{print}\PYG{p}{(}\PYG{l+s+sa}{f}\PYG{l+s+s2}{\PYGZdq{}}\PYG{l+s+si}{\PYGZob{}}\PYG{n}{parametro}\PYG{l+s+si}{:}\PYG{l+s+s2}{3}\PYG{l+s+si}{\PYGZcb{}}\PYG{l+s+s2}{ | }\PYG{l+s+si}{\PYGZob{}}\PYG{n}{valor}\PYG{l+s+si}{:}\PYG{l+s+s2}{6}\PYG{l+s+si}{\PYGZcb{}}\PYG{l+s+s2}{\PYGZdq{}}\PYG{p}{)}
+\end{Verbatim}

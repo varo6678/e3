@@ -1,0 +1,51 @@
+\begin{Verbatim}[commandchars=\\\{\}]
+\PYG{c+c1}{\PYGZsh{} /e/src/core/\PYGZus{}typing.py}
+
+\PYG{k+kn}{from} \PYG{n+nn}{...} \PYG{k+kn}{import} \PYG{n}{np}
+
+\PYG{k+kn}{from} \PYG{n+nn}{typing} \PYG{k+kn}{import} \PYG{p}{(}
+    \PYG{n}{Dict}\PYG{p}{,}
+    \PYG{n}{Any}\PYG{p}{,}
+    \PYG{n}{Union}\PYG{p}{,}
+    \PYG{n}{Tuple}\PYG{p}{,}
+    \PYG{n}{List}\PYG{p}{,}
+    \PYG{n}{Optional}\PYG{p}{,}
+    \PYG{n}{TypeVar}\PYG{p}{,}
+    \PYG{n}{Generic}\PYG{p}{,}
+    \PYG{n}{Callable}
+\PYG{p}{)}
+
+\PYG{n}{\PYGZus{}\PYGZus{}all\PYGZus{}\PYGZus{}} \PYG{o}{=} \PYG{p}{[}
+    \PYG{l+s+s1}{\PYGZsq{}Dict\PYGZsq{}}\PYG{p}{,}
+    \PYG{l+s+s1}{\PYGZsq{}Any\PYGZsq{}}\PYG{p}{,}
+    \PYG{l+s+s1}{\PYGZsq{}Union\PYGZsq{}}\PYG{p}{,}
+    \PYG{l+s+s1}{\PYGZsq{}Tuple\PYGZsq{}}\PYG{p}{,}
+    \PYG{l+s+s1}{\PYGZsq{}List\PYGZsq{}}\PYG{p}{,}
+    \PYG{l+s+s1}{\PYGZsq{}Optional\PYGZsq{}}\PYG{p}{,}
+    \PYG{l+s+s1}{\PYGZsq{}TypeVar\PYGZsq{}}\PYG{p}{,}
+    \PYG{l+s+s1}{\PYGZsq{}Generic\PYGZsq{}}\PYG{p}{,}
+    \PYG{l+s+s1}{\PYGZsq{}Callable\PYGZsq{}}\PYG{p}{,}
+    \PYG{l+s+s1}{\PYGZsq{}HiperparametrosLike\PYGZsq{}}\PYG{p}{,}
+    \PYG{l+s+s1}{\PYGZsq{}ModuloLike\PYGZsq{}}\PYG{p}{,}
+    \PYG{l+s+s1}{\PYGZsq{}CoordenadaLike\PYGZsq{}}\PYG{p}{,}
+    \PYG{l+s+s1}{\PYGZsq{}CoordenadasLike\PYGZsq{}}\PYG{p}{,}
+    \PYG{l+s+s1}{\PYGZsq{}DictOptionsLIke\PYGZsq{}}\PYG{p}{,}
+    \PYG{l+s+s1}{\PYGZsq{}InputLike\PYGZsq{}}\PYG{p}{,}
+    \PYG{l+s+s1}{\PYGZsq{}ResultadosLike\PYGZsq{}}\PYG{p}{,}
+    \PYG{l+s+s1}{\PYGZsq{}ListaStringsLike\PYGZsq{}}\PYG{p}{,}
+    \PYG{l+s+s1}{\PYGZsq{}DictParametrosLike\PYGZsq{}}\PYG{p}{,}
+    \PYG{l+s+s1}{\PYGZsq{}ListaIntLike\PYGZsq{}}
+\PYG{p}{]}
+
+\PYG{n+nb}{type} \PYG{n}{ResultadosLike} \PYG{o}{=} \PYG{n}{Dict}\PYG{p}{[}\PYG{n+nb}{str}\PYG{p}{,} \PYG{n}{Any}\PYG{p}{]}
+\PYG{n+nb}{type} \PYG{n}{DictOptionsLIke} \PYG{o}{=} \PYG{n}{Dict}\PYG{p}{[}\PYG{n+nb}{str}\PYG{p}{,} \PYG{n}{Any}\PYG{p}{]}
+\PYG{n+nb}{type} \PYG{n}{DictParametrosLike} \PYG{o}{=} \PYG{n}{Dict}\PYG{p}{[}\PYG{n+nb}{str}\PYG{p}{,} \PYG{n}{Any}\PYG{p}{]}
+\PYG{n+nb}{type} \PYG{n}{HiperparametrosLike} \PYG{o}{=} \PYG{n}{Dict}\PYG{p}{[}\PYG{n+nb}{str}\PYG{p}{,} \PYG{n+nb}{int} \PYG{o}{|} \PYG{n+nb}{float}\PYG{p}{]}
+\PYG{n+nb}{type} \PYG{n}{ModuloLike} \PYG{o}{=} \PYG{n+nb}{float}
+\PYG{n+nb}{type} \PYG{n}{CoordenadaLike} \PYG{o}{=} \PYG{n+nb}{float} \PYG{o}{|} \PYG{n}{np}\PYG{o}{.}\PYG{n}{ndarray} \PYG{o}{|} \PYG{n+nb}{int}
+\PYG{n+nb}{type} \PYG{n}{CoordenadasLike} \PYG{o}{=} \PYG{n}{Tuple}\PYG{p}{[}\PYG{n}{CoordenadaLike}\PYG{p}{,} \PYG{o}{...}\PYG{p}{]}
+\PYG{n+nb}{type} \PYG{n}{InputLike} \PYG{o}{=} \PYG{n}{Tuple}\PYG{p}{[}\PYG{n+nb}{int} \PYG{o}{|} \PYG{n+nb}{float}\PYG{p}{]}
+\PYG{n+nb}{type} \PYG{n}{ListaStringsLike} \PYG{o}{=} \PYG{n}{List}\PYG{p}{[}\PYG{n+nb}{str}\PYG{p}{]}
+\PYG{n+nb}{type} \PYG{n}{ListaIntLike} \PYG{o}{=} \PYG{n}{List}\PYG{p}{[}\PYG{n+nb}{int}\PYG{p}{]}
+
+\end{Verbatim}

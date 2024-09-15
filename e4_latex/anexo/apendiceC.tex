@@ -1,0 +1,604 @@
+\chapter{e}\label{apendice:b}
+
+\section{\_\_init\_\_.py}
+\begin{minted}[fontsize={\fontsize{5.5}{6.5}\selectfont}, breaklines]{python}
+import numpy as np
+from .src.lib.matplotlib_settings import plt
+import pandas as pd
+\end{minted}
+
+
+\section{src}
+
+\subsection{core}
+
+\subsubsection{\_\_init\_\_.py}
+\begin{minted}[fontsize={\fontsize{5.5}{6.5}\selectfont}, breaklines]{python}
+
+\end{minted}
+
+
+
+\subsubsection{\_abstractas.py}
+\begin{minted}[fontsize={\fontsize{5.5}{6.5}\selectfont}, breaklines]{python}
+# /e/src/core/_abstractas.py
+
+from abc import ABC, abstractmethod
+from ._typing import (
+    ListaStringsLike,
+    DictParametrosLike
+)
+
+
+class Parametros(ABC):
+    
+    """
+    # Explicacion
+    Esta clase pretende facilitar el uso de guardado de parametros.
+    
+    ## Example
+    >>> class SDEModelParameters(Parameters):
+    >>>     mu = 2
+    >>>     sigma = 1
+    >>>     X0 = 1
+    >>> 
+    >>> params = SDEModelParameters()
+    >>> print(params)  # Salida esperada: "Parameters: SDEModelParameters"
+    >>> print(params.nombre) # Salida esperada: "SDEModelParameters"
+    >>> print(params.parametros_de_la_clase())  # {'mu': 2, 'sigma': 1, 'X0': 1}
+    """
+    
+    def __init__(self, **kwargs):
+        for key, value in kwargs.items():
+            setattr(self, key, value)
+
+    def __repr__(self) -> str:
+        base_class_name = self.__class__.__bases__[0].__name__
+        return f"{base_class_name}: {self.__class__.__name__}"
+
+    @property
+    def nombre(self) -> str:
+        return self.__repr__().split(':')[1].strip()
+
+    @classmethod
+    def lista_de_funciones_prop_de_una_clase(cls) -> ListaStringsLike:
+        return [p for p in dir(cls) if isinstance(getattr(cls, p), property)]
+
+    @classmethod
+    def parametros_de_la_clase(cls) -> DictParametrosLike:
+        # Obtener las propiedades de la clase
+        property_names = cls.lista_de_funciones_prop_de_una_clase()
+        
+        # Obtener todos los atributos que no sean métodos ni propiedades internas
+        internal_variables_dict = {k: v for k, v in vars(cls).items() if not k.startswith("__")}
+        
+        # Excluir las propiedades y los atributos internos que comienzan con "_"
+        store_keys = [] + property_names
+        for key in internal_variables_dict.keys():
+            if key.startswith('_'): 
+                store_keys.append(key)
+        for key in store_keys:
+            if key in internal_variables_dict:
+                del internal_variables_dict[key]
+        
+        return internal_variables_dict
+\end{minted}
+
+
+\subsubsection{\_typing.py}
+\begin{minted}[fontsize={\fontsize{5.5}{6.5}\selectfont}, breaklines]{python}
+# /e/src/core/_typing.py
+
+from ... import np
+
+from typing import (
+    Dict, 
+    Any,
+    Union,
+    Tuple,
+    List,
+    Optional,
+    TypeVar,
+    Generic,
+    Callable
+)
+
+__all__ = [
+    'Dict', 
+    'Any',
+    'Union',
+    'Tuple',
+    'List',
+    'Optional',
+    'TypeVar',
+    'Generic',
+    'Callable',
+    'HiperparametrosLike',
+    'ModuloLike',
+    'CoordenadaLike',
+    'CoordenadasLike',
+    'DictOptionsLIke',
+    'InputLike',
+    'ResultadosLike',
+    'ListaStringsLike',
+    'DictParametrosLike',
+    'ListaIntLike'
+]
+
+type ResultadosLike = Dict[str, Any]
+type DictOptionsLIke = Dict[str, Any]
+type DictParametrosLike = Dict[str, Any]
+type HiperparametrosLike = Dict[str, int | float]
+type ModuloLike = float
+type CoordenadaLike = float | np.ndarray | int
+type CoordenadasLike = Tuple[CoordenadaLike, ...]
+type InputLike = Tuple[int | float]
+type ListaStringsLike = List[str]
+type ListaIntLike = List[int]
+
+\end{minted}
+
+
+\subsection{lib}
+
+\subsubsection{\_\_init\_\_.py}
+\begin{minted}[fontsize={\fontsize{5.5}{6.5}\selectfont}, breaklines]{python}
+
+\end{minted}
+
+
+\subsubsection{constants.py}
+\begin{minted}[fontsize={\fontsize{5.5}{6.5}\selectfont}, breaklines]{python}
+# /e/src/lib/constants.py
+
+import os
+import sys
+from pathlib import Path
+from dataclasses import dataclass
+
+__all__ = [
+    'Rutas'
+]
+
+@dataclass(frozen=True)
+class Rutas:
+    RUTA_PAQUETE: str = str(Path(__file__).resolve().parents[2])
+\end{minted}
+
+
+\subsubsection{general.py}
+\begin{minted}[fontsize={\fontsize{5.5}{6.5}\selectfont}, breaklines]{python}
+# /e/lib/clases.py
+
+from ..core._abstractas import Parametros
+from ..core._typing import (
+    InputsLike
+)
+
+class ParametrosProblema(Parametros):
+    
+    """
+    Ejemplo
+    ---
+    >>> Temperatura.T0 = 0
+    >>> Temperatura.T1 = 50
+    >>> NpuntosDireccion.Nx = 100
+    >>> NpuntosDireccion.Ny = 100
+    >>> SemiCirculoParametros.R = 1
+
+    >>> inputs = {
+    >>>     'T0' : Temperatura.T0,
+    >>>     'T1' : Temperatura.T1,
+    >>>     'Nx' : NpuntosDireccion.Nx,
+    >>>     'Ny' : NpuntosDireccion.Ny,
+    >>>     'R' : SemiCirculoParametros.R
+    >>> }
+
+    >>> params = ParametrosProblema(dict_parametros=inputs)
+    >>> params.print_parametros
+    """
+    
+    def __init__(self, dict_parametros: InputsLike) -> None:
+        self.inputs = dict_parametros
+        
+    def __repr__(self) -> str:
+        return f"ParametrosProblema({list(self.inputs.keys())})"
+        
+    @property
+    def print_parametros(self):
+        for parametro, valor in self.inputs.items():
+            print(f"{parametro:3} | {valor:6}")   
+\end{minted}
+
+
+\subsubsection{logger.py}
+\begin{minted}[fontsize={\fontsize{5.5}{6.5}\selectfont}, breaklines]{python}
+# /e/src/lib/logger.py
+
+import logging
+from logging import _nameToLevel, _levelToName
+from e.src.core._typing import (
+    DictParametrosLike,
+)
+
+__all__ = [
+    'dict_log_level',
+    'dict_level_log',
+    'define_logger'
+]
+
+dict_log_level: DictParametrosLike = _nameToLevel
+dict_level_log: DictParametrosLike = _levelToName
+
+def define_logger(logger_name: str, logger_level: str = 'DEBUG'):
+    
+    # Configurar logger.
+    logger = logging.getLogger(logger_name)
+    logger.setLevel(dict_log_level[logger_level])
+
+    console_handler = logging.StreamHandler()
+
+    # Añadir un formato básico para los mensajes de log.
+    formatter = logging.Formatter('%(name)s - %(levelname)s - %(message)s')
+    console_handler.setFormatter(formatter)
+
+    # Añadir el handler al logger.
+    logger.addHandler(console_handler)
+    
+    return logger
+\end{minted}
+
+
+\subsubsection{matplotlib\_settings.py}
+\begin{minted}[fontsize={\fontsize{5.5}{6.5}\selectfont}, breaklines]{python}
+# /e/src/lib/matplotlib_settings.py
+
+import matplotlib.pyplot as plt
+
+plt.rcParams['figure.figsize'] = (9,6)
+plt.rcParams['lines.linewidth'] = 3
+plt.rcParams['xtick.bottom'] = False
+plt.rcParams['ytick.left'] = False
+pal = ["#FBB4AE","#B3CDE3", "#CCEBC5","#CFCCC4"]
+\end{minted}
+
+
+\subsubsection{metodos\_numericos.py}
+\begin{minted}[fontsize={\fontsize{5.5}{6.5}\selectfont}, breaklines]{python}
+# /e/src/lib/metodos_numericos.py
+
+from ... import np
+from .logger import define_logger
+from ..core._typing import Callable
+
+__all__ = [
+    'solve_wave_eq',
+    'jacobi',
+    'gauss_seidel',
+    'gauss_seidel_sor'
+]
+
+informer = define_logger(logger_name='mna', logger_level='INFO')
+
+def DiferenciasFinitas2D(
+    u: np.ndarray, 
+    Nx: int, 
+    Ny: int, 
+    update_rule: Callable[[np.ndarray, int, int], float],  # Función para actualizar u[i,j]
+    tol: float = 1e-6,
+    max_iter: int = int(1e4)
+    ) -> np.ndarray:
+    
+    for iteracion in range(max_iter):
+        u_old = np.copy(u)
+        
+        # Iterar sobre los puntos internos.
+        for i in range(1, Nx-1):
+            for j in range(1, Ny-1):
+                # Llamada a la regla de actualización que depende de la ecuación.
+                u[i, j] = update_rule(u_old, i, j)
+        
+        # Criterio de convergencia
+        error = np.max(np.abs(u - u_old))
+        if error < tol: 
+            print(f"Convergencia alcanzada después de {iteracion} iteraciones.")
+            return u, iteracion
+        
+    print(f"No se alcanzó la convergencia después de {max_iter} iteraciones.")
+    return u, max_iter
+
+def solve_wave_eq(Nx, Nt, L, T, cfl):
+    """
+    Resuelve la ecuación de onda hiperbólica con el esquema explícito en diferencias finitas.
+    
+    Args:
+    - Nx: Número de puntos en la dirección espacial (x).
+    - Nt: Número de puntos en la dirección temporal (t).
+    - L: Longitud del dominio espacial.
+    - T: Tiempo total a simular.
+    - cfl: Número de Courant (CFL), define la relación entre dt y dx.
+    
+    Returns:
+    - u: Matriz con las soluciones aproximadas.
+    - x: Vector de posiciones espaciales.
+    - t: Vector de tiempos.
+    """
+    # Discretización espacial y temporal
+    dx = L / (Nx - 1)
+    dt = cfl * dx  # Para mantener la estabilidad, dt <= dx/c
+    x = np.linspace(0, L, Nx)
+    t = np.linspace(0, T, Nt)
+    
+    # Coeficiente de estabilidad CFL
+    r = (dt / dx)**2
+    
+    # Inicialización de la solución
+    u = np.zeros((Nt, Nx))
+    informer.debug(u)
+    
+    # Condiciones iniciales
+    u[0, :] = x * (1 - x)  # u(x, 0) = x(1 - x)
+    
+    # Primera iteración: derivada temporal cero
+    u[1, :] = u[0, :]  # u_t(x, 0) = 0 implica que u[1, :] = u[0, :]
+    
+    # Aplicar condiciones de frontera
+    u[:, 0] = 0  # u(0, t) = 0
+    u[:, -1] = 0  # u(1, t) = 0
+    
+    # Iteraciones en el tiempo
+    for n in range(1, Nt-1):
+        for i in range(1, Nx-1):
+            u[n+1, i] = (2 * u[n, i] - u[n-1, i] +
+                         r * (u[n, i+1] - 2 * u[n, i] + u[n, i-1]) +
+                         dt**2 * (1 - x[i]**2))
+    
+    return u, x, t
+
+
+def solve_wave_eq(Nx, Nt, L, T, cfl):
+    """
+    Resuelve la ecuación de onda hiperbólica con el esquema explícito en diferencias finitas.
+    
+    Args:
+    - Nx: Número de puntos en la dirección espacial (x).
+    - Nt: Número de puntos en la dirección temporal (t).
+    - L: Longitud del dominio espacial.
+    - T: Tiempo total a simular.
+    - cfl: Número de Courant (CFL), define la relación entre dt y dx.
+    
+    Returns:
+    - u: Matriz con las soluciones aproximadas.
+    - x: Vector de posiciones espaciales.
+    - t: Vector de tiempos.
+    """
+    # Discretización espacial y temporal
+    dx = L / (Nx - 1)
+    dt = cfl * dx  # Para mantener la estabilidad, dt <= dx/c
+    x = np.linspace(0, L, Nx)
+    t = np.linspace(0, T, Nt)
+    
+    # Coeficiente de estabilidad CFL
+    r = (dt / dx)**2
+    
+    # Inicialización de la solución
+    u = np.zeros((Nt, Nx))
+    informer.debug(u)
+    
+    # Condiciones iniciales
+    u[0, :] = x * (1 - x)  # u(x, 0) = x(1 - x)
+    
+    # Primera iteración: derivada temporal cero
+    u[1, :] = u[0, :]  # u_t(x, 0) = 0 implica que u[1, :] = u[0, :]
+    
+    # Aplicar condiciones de frontera
+    u[:, 0] = 0  # u(0, t) = 0
+    u[:, -1] = 0  # u(1, t) = 0
+    
+    # Iteraciones en el tiempo
+    for n in range(1, Nt-1):
+        for i in range(1, Nx-1):
+            u[n+1, i] = (2 * u[n, i] - u[n-1, i] +
+                         r * (u[n, i+1] - 2 * u[n, i] + u[n, i-1]) +
+                         dt**2 * (1 - x[i]**2))
+    
+    return u, x, t
+
+def jacobi(u, Nx, Ny, tol=1e-6, max_iter=10000):
+    
+    for iteracion in range(max_iter):
+        u_old = np.copy(u)
+        
+        # Iterar sobre los puntos internos.
+        for i in range(1, Nx-1):
+            for j in range(1, Ny-1):
+                # Esquema para la ecuacion de Laplace.
+                u[i, j] = 0.25 * (u[i+1, j] + u[i-1, j] + u[i, j+1] + u[i, j-1])
+        
+        # Criterio de convergencia
+        error = np.max(np.abs(u - u_old))
+        if error < tol:
+            informer.info(f"Convergencia alcanzada después de {iteracion} iteraciones.")
+            return u, iteracion
+        
+    informer.info(f"No se alcanzó la convergencia después de {max_iter} iteraciones.")
+    return u, max_iter
+
+
+def gauss_seidel(u, Nx, Ny, tol=1e-6, max_iter=10000):
+    """
+    Método de Gauss-Seidel para resolver el sistema de ecuaciones discretizado
+    de la ecuación de Laplace.
+    
+    Args:
+    - u: Matriz con las condiciones iniciales de temperatura.
+    - Nx: Número de puntos en la dirección x.
+    - Ny: Número de puntos en la dirección y.
+    - tol: Tolerancia para la convergencia.
+    - max_iter: Máximo número de iteraciones.
+    
+    Returns:
+    - u: Matriz con las soluciones aproximadas.
+    - iteraciones: Número de iteraciones realizadas.
+    """
+    for iteracion in range(max_iter):
+        max_error = 0.0
+        
+        # Iterar sobre los puntos internos
+        for i in range(1, Nx-1):
+            for j in range(1, Ny-1):
+                # Guardar el valor anterior
+                u_old = u[i, j]
+                
+                # Esquema para la ecuación de Laplace
+                u[i, j] = 0.25 * (u[i+1, j] + u[i-1, j] + u[i, j+1] + u[i, j-1])
+                
+                # Calcular el error máximo
+                max_error = max(max_error, abs(u[i, j] - u_old))
+        
+        
+        # Criterio de convergencia
+        if max_error < tol:
+            informer.info(f"Convergencia alcanzada después de {iteracion} iteraciones.")
+            return u, iteracion
+        
+    informer.info(f"No se alcanzó la convergencia después de {max_iter} iteraciones.")
+    return u, max_iter
+
+
+def gauss_seidel_matriz(A, b, tol=1e-6, max_iter=10000):
+    """
+    Método de Gauss-Seidel para resolver un sistema lineal Ax = b.
+    
+    Args:
+    - A: Matriz de coeficientes.
+    - b: Vector de términos independientes.
+    - tol: Tolerancia para la convergencia.
+    - max_iter: Máximo número de iteraciones.
+    
+    Returns:
+    - x: Vector solución.
+    - iteraciones: Número de iteraciones realizadas.
+    """
+    n = len(b)
+    x = np.zeros_like(b, dtype=np.double)  # Vector inicial de solución
+    
+    for iteracion in range(max_iter):
+        x_old = np.copy(x)
+        
+        # Iterar sobre cada ecuación del sistema
+        for i in range(n):
+            sigma = 0
+            for j in range(n):
+                if i != j:
+                    sigma += A[i, j] * x[j]
+            
+            # Actualizar la solución usando los valores más recientes
+            x[i] = (b[i] - sigma) / A[i, i]
+        
+        # Criterio de convergencia
+        error = np.linalg.norm(x - x_old, ord=np.inf)
+        if error < tol:
+            informer.info(f"Convergencia alcanzada después de {iteracion} iteraciones.")
+            return x, iteracion
+    
+    informer.info(f"No se alcanzó la convergencia después de {max_iter} iteraciones.")
+    return x, max_iter
+
+
+def gauss_seidel_sor(u, Nx, Ny, omega=1.5, tol=1e-6, max_iter=10000):
+    
+    for iteracion in range(max_iter):
+        max_error = 0.0
+        
+        # Iterar sobre los puntos internos
+        for i in range(1, Nx-1):
+            for j in range(1, Ny-1):
+                # Guardar el valor anterior
+                u_old = u[i, j]
+                
+                # Esquema para la ecuación de Laplace (Gauss-Seidel + Sobrerrelajación)
+                u_new = 0.25 * (u[i+1, j] + u[i-1, j] + u[i, j+1] + u[i, j-1])
+                
+                # Actualización con Sobrerrelajación
+                u[i, j] = (1 - omega) * u_old + omega * u_new
+                
+                # Calcular el error máximo
+                max_error = max(max_error, abs(u[i, j] - u_old))
+        
+        # Criterio de convergencia
+        if max_error < tol:
+            informer.info(f"Convergencia alcanzada después de {iteracion} iteraciones.")
+            return u, iteracion
+    
+    informer.info(f"No se alcanzó la convergencia después de {max_iter} iteraciones.")
+    return u, max_iter
+\end{minted}
+
+
+\subsubsection{parsers.py}
+\begin{minted}[fontsize={\fontsize{5.5}{6.5}\selectfont}, breaklines]{python}
+# /e/src/lib/parsers.py
+
+import argparse
+from .logger import (
+    dict_log_level,
+    dict_level_log
+)
+from ..core._typing import Any
+
+def define_parser(mensaje_descripcion: str = "Este script procesa datos para MNA.") -> Any:
+
+    parser = argparse.ArgumentParser(description=mensaje_descripcion)
+
+    parser.add_argument(
+        "-vsy", "--verbosity",
+        type=int,
+        choices=[level for level in dict_log_level.values()],
+        default='INFO',
+        help=f"Nivel de verbosidad {list(dict_log_level.items())}"
+    )
+
+    parser.add_argument(
+        "-sp", "--show_plots", 
+        action="store_true",
+        help="Muestra los plots del script."
+    )
+
+    parser.add_argument(
+        "-pl", "--parallel", 
+        action="store_true",
+        help="Hace los calculos (los que procedan) en paralelo."
+    )
+    
+    return parser
+\end{minted}
+
+
+\subsubsection{placeholders.py}
+\begin{minted}[fontsize={\fontsize{5.5}{6.5}\selectfont}, breaklines]{python}
+# /e/src/lib/placeholders.py
+
+from ..core._typing import Optional
+from ..core._abstractas import Parametros
+
+__all__ = [
+    'ParametrosFisicos',
+    'NpuntosDireccion',
+    'ParametrosGeometricos',
+    'ParametrosComputacionales'
+]
+
+class ParametrosFisicos(Parametros):
+    pass
+
+class NpuntosDireccion(Parametros):
+    pass
+
+class ParametrosGeometricos(Parametros):
+    pass
+
+class ParametrosComputacionales(Parametros):
+    pass
+\end{minted}
+
